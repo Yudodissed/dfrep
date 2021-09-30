@@ -13,26 +13,46 @@ const restrictedCommands = [
 ]
 
 const whitelist = ['Yudodiss'] //comment out to disable whitelist and enable blacklist
-const blacklist = ['GhostDuckyy']
+const blacklist = []
 
 let dic = {}
 let queue = []
 let dropHook = false
 let queueRunning = false
 let timestamp
-let rawLogin = fs.readFileSync('src/login/login.json')
-let loginJSON = JSON.parse(rawLogin)
+
+let host
+let user
+let pass
+let mcUser
+let mcPass
+
+if (fs.existsSync('playerdata/' + arg1 + '_data.json')) {
+  let rawLogin = fs.readFileSync('src/login/login.json')
+  let loginJSON = JSON.parse(rawLogin)
+  host = loginJSON['sql']['host']
+  user = loginJSON['sql']['user']
+  pass = loginJSON['sql']['pass']
+  mcuser = loginJSON['mc']['username'] 
+  mcpass = loginJSON['mc']['password']
+} else {
+  host = process.env.HOST
+  user = process.env.USER
+  pass = process.env.PASS
+  mcUser = process.env.MC_USER
+  mcPass = process.env.MC_PASS
+}
 
 //Connection stuffs
 const con = mysql.createConnection({
-  host: loginJSON['sql']['host'],
-  user: loginJSON['sql']['user'],
-  password: loginJSON['sql']['pass']
+  host: host,
+  user: user,
+  password: [pass]
 })
 const bot = mineflayer.createBot({
   host: 'mcdiamondfire.com',
-  username: loginJSON['mc']['username'],
-  password: loginJSON['mc']['password'],
+  username: mcUser,
+  password: mcPass,
   port: '25565',
   version: '1.16.5',
   auth: 'microsoft',
