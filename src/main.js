@@ -27,7 +27,7 @@ let pass
 let mcUser
 let mcPass
 
-if (fs.existsSync('playerdata/' + arg1 + '_data.json')) {
+if (fs.existsSync('src/login/login.json')) {
   let rawLogin = fs.readFileSync('src/login/login.json')
   let loginJSON = JSON.parse(rawLogin)
   host = loginJSON['sql']['host']
