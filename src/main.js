@@ -4,6 +4,7 @@ const fs = require('fs')
 const {timeStamp} = require('console')
 const cmd = require('./cmd')
 const { report } = require('process')
+const mysql = require('mysql')
 
 const restrictedCommands = [
   'quickrep',
@@ -14,22 +15,30 @@ const restrictedCommands = [
 const whitelist = ['Yudodiss'] //comment out to disable whitelist and enable blacklist
 const blacklist = ['GhostDuckyy']
 
-
 let dic = {}
 let queue = []
 let dropHook = false
 let queueRunning = false
 let timestamp = null
 
-//Fetches sensitive info and inits bot
 let rawLogin = fs.readFileSync('src/login/login.json')
 let loginJSON = JSON.parse(rawLogin)
-let loginName = loginJSON['username']
-let loginPass = loginJSON['password']
+
+var con = mysql.createConnection({
+  host: loginJSON['sql']['host'],
+  user: loginJSON['sql']['user'],
+  password: loginJSON['sql']['pass']
+})
+
+con.connect(function(err) {
+  if (err) throw err;
+  console.log("Connected to mysql!");
+});
+
 const bot = mineflayer.createBot({
   host: 'mcdiamondfire.com',
-  username: loginName,
-  password: loginPass,
+  username: loginJSON['mc']['username'],
+  password: loginJSON['mc']['password'],
   port: '25565',
   version: '1.16.5',
   auth: 'microsoft',
