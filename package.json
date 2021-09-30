@@ -1,0 +1,22 @@
+{
+  "name": "dfrep",
+  "version": "1.0.0",
+  "description": "Lists all commands, and a quick about me.",
+  "main": "main.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Yudodissed/dfrep.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Yudodissed/dfrep/issues"
+  },
+  "homepage": "https://github.com/Yudodissed/dfrep#readme"
+}
