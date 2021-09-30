@@ -7,7 +7,8 @@
     "lib": "lib"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/main.js"
   },
   "repository": {
     "type": "git",
@@ -18,5 +19,11 @@
   "bugs": {
     "url": "https://github.com/Yudodissed/dfrep/issues"
   },
-  "homepage": "https://github.com/Yudodissed/dfrep#readme"
+  "homepage": "https://github.com/Yudodissed/dfrep#readme",
+  "devDependencies": {
+    "console": "^0.7.2",
+    "fs": "^0.0.1-security",
+    "mineflayer": "^3.11.2",
+    "process": "^0.11.10"
+  }
 }
