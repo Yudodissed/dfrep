@@ -19,22 +19,16 @@ let dic = {}
 let queue = []
 let dropHook = false
 let queueRunning = false
-let timestamp = null
-
+let timestamp
 let rawLogin = fs.readFileSync('src/login/login.json')
 let loginJSON = JSON.parse(rawLogin)
 
-var con = mysql.createConnection({
+//Connection stuffs
+const con = mysql.createConnection({
   host: loginJSON['sql']['host'],
   user: loginJSON['sql']['user'],
   password: loginJSON['sql']['pass']
 })
-
-con.connect(function(err) {
-  if (err) throw err;
-  console.log("Connected to mysql!");
-});
-
 const bot = mineflayer.createBot({
   host: 'mcdiamondfire.com',
   username: loginJSON['mc']['username'],
@@ -44,38 +38,13 @@ const bot = mineflayer.createBot({
   auth: 'microsoft',
 })
 
-bot.on('login', () => {
-  updateTimestamp()
-  console.log(timestamp + 'Connected!')
-})
-
-bot.on('spawn', () => {
-  cornerWalk()
-})
-
-//Moves dfrep to a corner because funny
-async function cornerWalk() {
-  bot.setControlState('forward', true)
-  await sleep(700)
-  bot.setControlState('left', true)
-  await sleep(3000)
-  bot.setControlState('forward', false)
-  bot.setControlState('left', false)
-  bot.look(75, 0, false)
-  bot.setQuickBarSlot(2)
-}
-
 //----------------------- Monitoring -----------------------//
 
-bot.on('error', error => {
-  updateTimestamp()
-  console.log(timestamp + error)
-})
-
-bot.on('kicked', kickreason => {
-  updateTimestamp()
-  console.log(timestamp + kickreason)
-})
+//legibility is for nerds
+bot.on('login', () => {updateTimestamp(); console.log(timestamp + 'Connected!')})
+bot.on('spawn', () => {cornerWalk()})
+bot.on('error', error => {updateTimestamp(); console.log(timestamp + error)})
+bot.on('kicked', kickreason => {updateTimestamp(); console.log(timestamp + kickreason)})
 
 //Detects dropped messages for the response queue
 bot.on('messagestr', (commonChat) => {
@@ -94,7 +63,6 @@ bot.on('chat', (username, message, translate, jsonMsg) => {
   if (username === 'You') {
     let sender = jsonMsg['extra'][1]['text']
     let args = message.split(' ')
-    // Filter
     if (typeof whitelist !== 'undefined') {
       if (!whitelist.includes(sender)) {
         updateTimestamp()
@@ -184,6 +152,18 @@ const updateTimestamp = function updateTimestamp() {
   let time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
   timestamp = '[' + time + ']: '
   return timestamp
+}
+
+//Moves dfrep to a corner because funny
+async function cornerWalk() {
+  bot.setControlState('forward', true)
+  await sleep(700)
+  bot.setControlState('left', true)
+  await sleep(3000)
+  bot.setControlState('forward', false)
+  bot.setControlState('left', false)
+  bot.look(75, 0, false)
+  bot.setQuickBarSlot(2)
 }
 
 exports.sleep = sleep;

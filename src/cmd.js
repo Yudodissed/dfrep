@@ -57,6 +57,8 @@ exports.register = register;
 
 //------------------------ /+rep ------------------------//
 // Adds a rep.
+
+//Heres something to work on: make it so player up or down reps are tracked on reciever data
 const plusRep = function plusrep(sender, args) {
     let repType
     let reciever = args[1]
@@ -68,6 +70,7 @@ const plusRep = function plusrep(sender, args) {
             let timestamp = main.updateTimestamp()
             console.log(timestamp + 'Invalid argument recieved from ' + sender)
             main.respond(sender, 'Invalid type. Do /msg dfrep help for more.')
+            return
         }
     } else repType = 'friendlyRating'
     let timestamp = main.updateTimestamp()
