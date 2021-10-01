@@ -12,6 +12,7 @@ const restrictedCommands = [
   '-rep'
 ]
 
+const admin = ['Yudodiss']
 const whitelist = ['Yudodiss'] //comment out to disable whitelist and enable blacklist
 const blacklist = []
 
@@ -21,34 +22,32 @@ let dropHook = false
 let queueRunning = false
 let timestamp
 
-let host
-let user
-let pass
 let mcUser
 let mcPass
+let db_login = {}
 
 if (fs.existsSync('src/login/login.json')) {
   let rawLogin = fs.readFileSync('src/login/login.json')
   let loginJSON = JSON.parse(rawLogin)
-  host = loginJSON['sql']['host']
-  user = loginJSON['sql']['user']
-  pass = loginJSON['sql']['pass']
+  db_login = {
+    host: loginJSON['sql']['host'],
+    user: loginJSON['sql']['user'],
+    password: loginJSON['sql']['pass']
+  }
   mcuser = loginJSON['mc']['username'] 
   mcpass = loginJSON['mc']['password']
 } else {
-  host = process.env.HOST
-  user = process.env.USER
-  pass = process.env.PASS
+  db_login = {
+    host: process.env.HOST,
+    user: process.env.USER,
+    password: process.env.PASS
+  }
   mcUser = process.env.MC_USER
   mcPass = process.env.MC_PASS
 }
 
 //Connection stuffs
-const con = mysql.createConnection({
-  host: host,
-  user: user,
-  password: [pass]
-})
+var con = mysql.createConnection(db_login)
 const bot = mineflayer.createBot({
   host: 'mcdiamondfire.com',
   username: mcUser,
@@ -65,6 +64,24 @@ bot.on('login', () => {updateTimestamp(); console.log(timestamp + 'Connected!')}
 bot.on('spawn', () => {cornerWalk()})
 bot.on('error', error => {updateTimestamp(); console.log(timestamp + error)})
 bot.on('kicked', kickreason => {updateTimestamp(); console.log(timestamp + kickreason)})
+
+con.connect(function(err) {
+  if (err) throw err;
+  updateTimestamp()
+  console.log(timestamp + 'Connected to SQL database!')
+  con.query("CREATE DATABASE mainDB", function (err, result) {
+  if (err) throw err
+  console.log('Database created')
+  })
+})
+con.on('error', function(err) {
+  console.log('db error', err)
+  if(err.code === 'PROTOCOL_CONNECTION_LOST') {
+    con = mysql.createConnection(db_login)
+    updateTimestamp()
+    console.log(timestamp + 'Refreshed SQL database.')
+  }
+})
 
 //Detects dropped messages for the response queue
 bot.on('messagestr', (commonChat) => {
@@ -116,6 +133,10 @@ bot.on('chat', (username, message, translate, jsonMsg) => {
       break
       case '-rep':
         cmd.minusRep(sender, args)
+      break
+      case 'testsql':
+
+      break
       default:
         updateTimestamp()
         console.log(timestamp + 'Invalid command recieved from ' + sender)
