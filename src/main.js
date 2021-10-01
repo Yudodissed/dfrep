@@ -69,10 +69,6 @@ con.connect(function(err) {
   if (err) throw err;
   updateTimestamp()
   console.log(timestamp + 'Connected to SQL database!')
-  con.query("CREATE DATABASE mainDB", function (err, result) {
-  if (err) throw err
-  console.log('Database created')
-  })
 })
 con.on('error', function(err) {
   console.log('db error', err)
