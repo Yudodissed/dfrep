@@ -1,53 +1,29 @@
-
 const mineflayer = require('mineflayer')
 const fs = require('fs')
 const {timeStamp} = require('console')
-const cmd = require('./cmd')
-const { report } = require('process')
+const { report, connected } = require('process')
 const mysql = require('mysql')
+const cmd = require('./cmd')
+const db = require('./db')
 
-const restrictedCommands = [
-  'quickrep',
-  '+rep',
-  '-rep'
-]
-
+const restrictedCommands = ['quickrep', '+rep', '-rep'] //cmds that require registration
 const admin = ['Yudodiss']
 const whitelist = ['Yudodiss'] //comment out to disable whitelist and enable blacklist
 const blacklist = []
 
-let dic = {}
-let queue = []
-let dropHook = false
-let queueRunning = false
-let timestamp
-
 let mcUser
 let mcPass
-let db_login = {}
 
 if (fs.existsSync('src/login/login.json')) {
   let rawLogin = fs.readFileSync('src/login/login.json')
   let loginJSON = JSON.parse(rawLogin)
-  db_login = {
-    host: loginJSON['sql']['host'],
-    user: loginJSON['sql']['user'],
-    password: loginJSON['sql']['pass']
-  }
-  mcuser = loginJSON['mc']['username'] 
-  mcpass = loginJSON['mc']['password']
+  mcUser = loginJSON['mc']['username'] 
+  mcPass = loginJSON['mc']['password']
 } else {
-  db_login = {
-    host: process.env.HOST,
-    user: process.env.USER,
-    password: process.env.PASS
-  }
   mcUser = process.env.MC_USER
   mcPass = process.env.MC_PASS
 }
 
-//Connection stuffs
-var con = mysql.createConnection(db_login)
 const bot = mineflayer.createBot({
   host: 'mcdiamondfire.com',
   username: mcUser,
@@ -59,25 +35,10 @@ const bot = mineflayer.createBot({
 
 //----------------------- Monitoring -----------------------//
 
-//legibility is for nerds
 bot.on('login', () => {updateTimestamp(); console.log(timestamp + 'Connected!')})
 bot.on('spawn', () => {cornerWalk()})
 bot.on('error', error => {updateTimestamp(); console.log(timestamp + error)})
 bot.on('kicked', kickreason => {updateTimestamp(); console.log(timestamp + kickreason)})
-
-con.connect(function(err) {
-  if (err) throw err;
-  updateTimestamp()
-  console.log(timestamp + 'Connected to SQL database!')
-})
-con.on('error', function(err) {
-  console.log('db error', err)
-  if(err.code === 'PROTOCOL_CONNECTION_LOST') {
-    con = mysql.createConnection(db_login)
-    updateTimestamp()
-    console.log(timestamp + 'Refreshed SQL database.')
-  }
-})
 
 //Detects dropped messages for the response queue
 bot.on('messagestr', (commonChat) => {
@@ -131,7 +92,7 @@ bot.on('chat', (username, message, translate, jsonMsg) => {
         cmd.minusRep(sender, args)
       break
       case 'testsql':
-
+        db.readData(args[1])
       break
       default:
         updateTimestamp()
@@ -143,6 +104,12 @@ bot.on('chat', (username, message, translate, jsonMsg) => {
 })
 
 //------------------------ Functions ------------------------//
+
+let dic = {}
+let queue = []
+let dropHook = false
+let queueRunning = false
+let timestamp
 
 const sleep = function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));

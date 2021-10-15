@@ -4,9 +4,11 @@ const fs = require('fs')
 const { timeStamp } = require('console')
 
 const main = require('./main')
+const db = require('./db')
 
 //------------------------ /quickrep ------------------------//
 //Quickly gives an overview of a players data.
+
 const quickrep = function quickrep(sender, args) {
     let arg1 = args[1]
     if (fs.existsSync('playerdata/' + arg1 + '_data.json')) {
@@ -30,6 +32,7 @@ exports.quickrep = quickrep;
 
 //------------------------ /register ------------------------//
 // Creates a players data file.
+
 const register = function register(sender) {
     if (!fs.existsSync('playerdata/' + sender + '_data.json')) {
         let timestamp = main.updateTimestamp()
@@ -99,6 +102,7 @@ exports.plusRep = plusRep;
 
 //------------------------ /-rep ------------------------//
 // Subtracts a rep.
+
 const minusRep = function minusrep(sender, args) {
 
 }
