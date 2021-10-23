@@ -9,62 +9,60 @@ const db = require('./db')
 //------------------------ /quickrep ------------------------//
 //Quickly gives an overview of a players data.
 
-const quickrep = function quickrep(sender, args) {
-    let arg1 = args[1]
-    if (fs.existsSync('playerdata/' + arg1 + '_data.json')) {
+const quickrep = function (sender, victim) {
+    db.readData(victim).then(data => {
         let timestamp = main.updateTimestamp()
-        console.log(timestamp + '/quickrep recieved from ' + sender)
-        let data = fs.readFileSync('playerdata/' + arg1 + '_data.json');
-        let fullData = JSON.parse(data)
-        let karma = fullData['reputation']['ratings']['karma']
-        let awards = fullData['reputation']['awards']
-        let awardCount = awards.length
-        let reportCount = fullData['reputation']['reports']['scamReports']  +  fullData['reputation']['reports']['greifReports']
-        main.respond(sender, args[1] + ': | ' + karma + ' Karma | ' + awardCount + ' Awards | ' + reportCount + ' Reports')
-    } else {
-        let timestamp = main.updateTimestamp()
-        console.log(timestamp + 'Invalid argument recieved from ' + sender)
-        main.respond(sender, 'Invalid user. Is that player registered? Do /msg dfrep help for more.')
-    }
+        console.log(timestamp + '/quickrep for ' + victim + ' recieved from ' + sender)
+        if (data !== false) {
+            let awardList = data.reputation.awards
+            let awardCount = awardList.length
+            let reportList1 = data.reputation.reports.greifReports
+            let reportList2 = data.reputation.reports.scamReports
+            let reportCount = reportList1.length + reportList2.length
+            main.respond(sender, `${victim}: | ${data.reputation.ratings.karma} Karma | ${awardCount} Awards | ${reportCount} Reports`)
+        } else {
+            let timestamp = main.updateTimestamp()
+            console.log(timestamp + 'Invalid argument recieved from ' + sender)
+            main.respond(sender, 'Invalid user. Is that player registered? Do /msg dfrep help for more.')
+        }
+    })
 }
 
 exports.quickrep = quickrep;
 
 //------------------------ /register ------------------------//
-// Creates a players data file.
+// Creates a players data file. Most code is spaghetti'd
+// into db.js.
 
-const register = function register(sender) {
-    if (!fs.existsSync('playerdata/' + sender + '_data.json')) {
+const register = function (sender) {
+    db.readData(sender).then(data => {
         let timestamp = main.updateTimestamp()
         console.log(timestamp + '/register recieved from ' + sender)
-        let rawTemplate = fs.readFileSync('playerdata/template/template_data.json')
-        let data = JSON.parse(rawTemplate)
-        let today = new Date();
-        data.statistics.dateJoined = today.getMonth() + "/" + today.getDate() + "/" + today.getFullYear();
-        let finalData = JSON.stringify(data, null, 4)
-        fs.writeFile('playerdata/' + sender + '_data.json', finalData, function (err) {
-            if (err) throw err
+        if (data === false) {
+            db.register(sender).then(output => {
+                if (output === true) {
+                    let timestamp = main.updateTimestamp()
+                    console.log(timestamp+`${sender} has registered!`)
+                    main.respond(sender, "You've been registered! Welcome to dfrep! Try out /msg dfrep help for more.")  
+                }
+            })
+        } else {
             let timestamp = main.updateTimestamp()
-            console.log(timestamp + 'File created for ' + sender)
-            main.respond(sender, "You've been registered! Do /msg dfrep help to see what you can do next!")
-        })
-    } else {
-        let timestamp = main.updateTimestamp()
-        console.log(timestamp + 'Invalid argument recieved from ' + sender)
-        main.respond(sender, 'You already seem to be registered.')
-
-    }
+            console.log(timestamp + 'Invalid argument recieved from ' + sender)
+            main.respond(sender, 'You already seem to be registered.')
+        }
+    })
 }
 
 exports.register = register;
 
 //------------------------ /+rep ------------------------//
-// Adds a rep.
+// Arguments must be inputed using an array of the args to
+// auto-detect the rep type.
 
-//Heres something to work on: make it so player up or down reps are tracked on reciever data
-const plusRep = function plusrep(sender, args) {
+const plusRep = function (sender, args) {
     let repType
-    let reciever = args[1]
+    let victim = args[1]
     if (args.length >= 3) {
         if ((args[2] === 'build') || (args[2] === 'dev')) {
             type = args[2]
@@ -77,34 +75,91 @@ const plusRep = function plusrep(sender, args) {
         }
     } else repType = 'friendlyRating'
     let timestamp = main.updateTimestamp()
-    console.log(timestamp + '/+rep for ' + reciever + ' recieved from ' + sender)
-    if (fs.existsSync('playerdata/' + reciever + '_data.json')) {
-        let rawTemplate = fs.readFileSync('playerdata/' + reciever + '_data.json')
-        let data = JSON.parse(rawTemplate)
-        let i = data.reputation.ratings[repType]
-        data.reputation.ratings[repType] = i + 1
-        data.reputation.ratings.karma = data.reputation.ratings.buildRating + data.reputation.ratings.devRating + data.reputation.ratings.friendlyRating //i'm sorry
-        let finalData = JSON.stringify(data, null, 4)
-        fs.writeFile('playerdata/' + reciever + '_data.json', finalData, function (err) {
-            if (err) throw err
+    console.log(timestamp + '/+rep for ' + victim + ' recieved from ' + sender)
+    db.readData(victim).then(data => {
+        let validReq = false
+        let increment = 1
+        if (!(sender in data.statistics.ratedBy)) {
+            validReq = true
+        } else {
+            if (!(data.statistics.ratedBy[sender] === "+1")) {
+                increment = 2
+                validReq = true
+            }
+        }
+        if (validReq) {
+            if (data !== false) {
+                db.writeData(victim, `reputation.ratings.${repType}`, data['reputation']['ratings'][repType] + increment, true)
+                db.readData(victim).then(data => {
+                    data.statistics.ratedBy[sender] = "+1"
+                    db.writeData(victim, `statistics.ratedBy`, data.statistics.ratedBy, false)
+                })
+                main.respond(sender, 'Recieved. Do /msg dfrep karma ' + victim + ' to check!')
+            } else {
+                let timestamp = main.updateTimestamp()
+                console.log(timestamp + 'Invalid argument recieved from ' + sender)
+                main.respond(sender, 'Invalid user. Is that player registered? Do /msg dfrep help for more.')
+            }
+        } else {
             let timestamp = main.updateTimestamp()
-            console.log(timestamp + 'File updated for ' + reciever)
-            main.respond(reciever, "+Rep given!")
-        })
-    } else {
-        let timestamp = main.updateTimestamp()
-        console.log(timestamp + 'Invalid argument recieved from ' + sender)
-        main.respond(sender, 'Invalid user. Is that player registered? Do /msg dfrep help for more.')
-    }
+            console.log(timestamp + sender + ' failed +rep for ' + victim)
+            main.respond(sender, "You've already given this player a +rep!")
+        }
+    })
 }
 
 exports.plusRep = plusRep;
 
 //------------------------ /-rep ------------------------//
-// Subtracts a rep.
+// Arguments must be inputed using an array of the args to
+// auto-detect the rep type.
 
-const minusRep = function minusrep(sender, args) {
-
+const minusRep = function (sender, args) {
+    let repType
+    let victim = args[1]
+    if (args.length >= 3) {
+        if ((args[2] === 'build') || (args[2] === 'dev')) {
+            type = args[2]
+            repType = type + 'Rating'
+        } else {
+            let timestamp = main.updateTimestamp()
+            console.log(timestamp + 'Invalid argument recieved from ' + sender)
+            main.respond(sender, 'Invalid type. Do /msg dfrep help for more.')
+            return
+        }
+    } else repType = 'friendlyRating'
+    let timestamp = main.updateTimestamp()
+    console.log(timestamp + '/-rep for ' + victim + ' recieved from ' + sender)
+    db.readData(victim).then(data => {
+        let validReq = false
+        let decrement = 1
+        if (!(sender in data.statistics.ratedBy)) {
+            validReq = true
+        } else {
+            if (!(data.statistics.ratedBy[sender] === "-1")) {
+                decrement = 2
+                validReq = true
+            }
+        }
+        if (validReq) {
+            if (data !== false) {
+                db.writeData(victim, `reputation.ratings.${repType}`, data['reputation']['ratings'][repType] - decrement, true)
+                db.readData(victim).then(data => {
+                    data.statistics.ratedBy[sender] = "-1"
+                    db.writeData(victim, `statistics.ratedBy`, data.statistics.ratedBy, false)
+                })
+                main.respond(sender, 'Recieved. Do /msg dfrep karma ' + victim + ' to check!')
+            } else {
+                let timestamp = main.updateTimestamp()
+                console.log(timestamp + 'Invalid argument recieved from ' + sender)
+                main.respond(sender, 'Invalid user. Is that player registered? Do /msg dfrep help for more.')
+            }
+        } else {
+            let timestamp = main.updateTimestamp()
+            console.log(timestamp + sender + 'failed -rep for' + victim)
+            main.respond(sender, "You've already given this player a -rep!")
+        }
+    })
 }
 
 exports.minusRep = minusRep;

@@ -8,7 +8,7 @@ const db = require('./db')
 
 const restrictedCommands = ['quickrep', '+rep', '-rep'] //cmds that require registration
 const admin = ['Yudodiss']
-const whitelist = ['Yudodiss'] //comment out to disable whitelist and enable blacklist
+const whitelist = ['Yudodiss', 'Mr_Dumpling'] //comment out to disable whitelist and enable blacklist
 const blacklist = []
 
 let mcUser
@@ -60,7 +60,7 @@ bot.on('chat', (username, message, translate, jsonMsg) => {
     if (typeof whitelist !== 'undefined') {
       if (!whitelist.includes(sender)) {
         updateTimestamp()
-        console.log(timestamp + sender + ' attempted command. Is exclusiveUser on?')
+        console.log(timestamp + sender + ' attempted command. Is whitelist on?')
         return
       }
     } else {
@@ -70,36 +70,45 @@ bot.on('chat', (username, message, translate, jsonMsg) => {
         return
       }
     }
-    if (!fs.existsSync('playerdata/' + sender + '_data.json')) {
-      if (restrictedCommands.includes(args[0])) {
+    db.readData(sender).then(data => {
+      if (!(restrictedCommands.includes(args[0]))) {
+        data = true
+      }
+      if (data !== false) {
+        switch(args[0]) {
+          case 'quickrep':
+            cmd.quickrep(sender, args[1])
+          break
+          case 'register':
+            cmd.register(sender)
+          break
+          case '+rep':
+            cmd.plusRep(sender, args)
+          break
+          case '-rep':
+            cmd.minusRep(sender, args)
+          break
+          case 'unrep':
+            cmd.unrep(sender)
+          break
+          /* For future debug use
+          case 'writesql':
+            db.writeData(args[1], args[2], args[3], args[4])
+          break
+          */
+          default:
+            updateTimestamp()
+            console.log(timestamp + 'Invalid command recieved from ' + sender)
+            respond(sender, 'Invalid command. Try /msg dfrep help for help!')
+          break
+        }
+      } else {
         updateTimestamp()
         console.log(timestamp + sender + ' attempted registered user only command.')
         respond(sender, 'You must be registered to use that command.')
         return
       }
-    }
-    switch(args[0]) {
-      case 'quickrep':
-        cmd.quickrep(sender, args)
-      break
-      case 'register':
-        cmd.register(sender)
-      break
-      case '+rep':
-        cmd.plusRep(sender, args)
-      break
-      case '-rep':
-        cmd.minusRep(sender, args)
-      break
-      case 'testsql':
-        db.readData(args[1])
-      break
-      default:
-        updateTimestamp()
-        console.log(timestamp + 'Invalid command recieved from ' + sender)
-        respond(sender, 'Invalid command. Try /msg dfrep help for help!')
-      break
-    }
+    })
   }
 })
 
@@ -161,7 +170,7 @@ const updateTimestamp = function updateTimestamp() {
 //Moves dfrep to a corner because funny
 async function cornerWalk() {
   bot.setControlState('forward', true)
-  await sleep(700)
+  await sleep(600)
   bot.setControlState('left', true)
   await sleep(3000)
   bot.setControlState('forward', false)
