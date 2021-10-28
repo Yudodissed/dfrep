@@ -8,7 +8,7 @@ const db = require('./db')
 
 const restrictedCommands = ['quickrep', '+rep', '-rep'] //cmds that require registration
 const admin = ['Yudodiss']
-const whitelist = ['Yudodiss', 'Mr_Dumpling'] //comment out to disable whitelist and enable blacklist
+const whitelist = ['Yudodiss', 'Mr_Dumpling','Proxxa'] //comment out to disable whitelist and enable blacklist
 const blacklist = []
 
 let mcUser
@@ -60,13 +60,13 @@ bot.on('chat', (username, message, translate, jsonMsg) => {
     if (typeof whitelist !== 'undefined') {
       if (!whitelist.includes(sender)) {
         updateTimestamp()
-        console.log(timestamp + sender + ' attempted command. Is whitelist on?')
+        console.log(timestamp + 'Blocked command from ' + sender + ' ["/' + message +'"]')
         return
       }
     } else {
       if (blacklist.includes(sender)) {
         updateTimestamp()
-        console.log(timestamp + sender + ' was blacklisted from using the bot.')
+        console.log(timestamp + 'Blocked command from ' + sender + ' ["/' + message +'"]')
         return
       }
     }
@@ -75,21 +75,27 @@ bot.on('chat', (username, message, translate, jsonMsg) => {
         data = true
       }
       if (data !== false) {
+        updateTimestamp()
         switch(args[0]) {
           case 'quickrep':
+            console.log(timestamp + '/quickrep from ' + sender + ' ["/' + message +'"]')
             cmd.quickrep(sender, args[1])
           break
           case 'register':
+            console.log(timestamp + '/register from ' + sender + ' ["/' + message +'"]')
             cmd.register(sender)
           break
           case '+rep':
+            console.log(timestamp + '+rep from ' + sender + ' ["/' + message +'"]')
             cmd.plusRep(sender, args)
           break
           case '-rep':
+            console.log(timestamp + '-rep from ' + sender + ' ["/' + message +'"]')
             cmd.minusRep(sender, args)
           break
           case 'unrep':
-            cmd.unrep(sender)
+            console.log(timestamp + 'unrep from ' + sender + ' ["/' + message +'"]')
+            cmd.unrep(sender, args[1])
           break
           /* For future debug use
           case 'writesql':
@@ -97,8 +103,7 @@ bot.on('chat', (username, message, translate, jsonMsg) => {
           break
           */
           default:
-            updateTimestamp()
-            console.log(timestamp + 'Invalid command recieved from ' + sender)
+            console.log(timestamp + 'Invalid command from ' + sender + ' ["/' + message +'"]')
             respond(sender, 'Invalid command. Try /msg dfrep help for help!')
           break
         }
@@ -152,7 +157,8 @@ const respond = async function respond(target, message) {
         removedTrgt = queue.shift()
         delete dic[removedTrgt]
         updateTimestamp()
-        console.log(timestamp + 'Message sent to ' +  queuedTrgt)
+        console.log(timestamp + 'Message sent to ' +  queuedTrgt + ': "' + queuedMsg + '"')
+        console.log('---')
       } else console.log(timestamp + 'Dropped message for ' + queuedTrgt + '. Retrying in ~2.8 seconds.') //Idk why this doesn't send lol
       await sleep(2800) // For the future: Owen said message delay is related to message length?
     }
@@ -160,7 +166,7 @@ const respond = async function respond(target, message) {
   queueRunning = false
 }
 
-const updateTimestamp = function updateTimestamp() {
+const updateTimestamp = function () {
   let today = new Date();
   let time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
   timestamp = '[' + time + ']: '

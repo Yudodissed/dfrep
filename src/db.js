@@ -33,7 +33,6 @@ function handleDisconnect() {
   con = mysql.createConnection(db_login)
   con.connect(function(err) {
     if(err) {
-      console.log('error when connecting to db:', err)
       setTimeout(handleDisconnect, 2000)
     }
   });
@@ -96,7 +95,9 @@ const writeData = function (user, path, newData, parseBool) {
   readData(user).then(data => {
     objectPath.set(data, path, newData)
     if (path.includes('reputation.ratings.')) {
-      data.reputation.ratings.karma = data.reputation.ratings.buildRating + data.reputation.ratings.devRating + data.reputation.ratings.friendlyRating
+      data.reputation.ratings.karma = data.reputation.ratings.buildRating + 
+                                      data.reputation.ratings.devRating + 
+                                      data.reputation.ratings.friendlyRating
     }
     let stringyData = JSON.stringify(data)
     let sql = `UPDATE maindb SET data = '${stringyData}' WHERE user = "${user}"`
