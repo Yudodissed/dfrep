@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="https://github.com/Yudodissed/dfrep/blob/main/logo.png?raw=tru" width="500px" alt="< cdnjs >"></a>
+  <img src="https://github.com/Yudodissed/dfrep/blob/main/logo.png?raw=tru" width="500px" alt="dfrep"></a>
 </h1>
 
 <p align="center">
