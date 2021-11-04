@@ -12,11 +12,11 @@
 </p>
 
 <p align="center">
-  dfrep (all lowercase) is an in-game reputation bot for the Minecraft server DiamondFire. Mainly, dfrep is used by sending messages to the in-game bot to create a trust profile for users. In addition to this, some utility commands are added. dfrep is not officially affiliated with DiamondFire, but permission has been given by an admin for me to run this bot. This repository may be behind the codebase the bot is actually running on. (it probably is) <br> <br> If you're here from the bot, <a href="https://github.com/Yudodissed/dfrep/new/main?readme=1#commandss">click here for the command list.</a>
+  dfrep (all lowercase) is an in-game reputation bot for the Minecraft server DiamondFire. Mainly, dfrep is used by sending messages to the in-game bot to create a trust profile for users. In addition to this, some utility commands are added. dfrep is not officially affiliated with DiamondFire, but permission has been given by an admin for me to run this bot. This repository may be behind the codebase the bot is actually running on. (it probably is) <br> <br> If you're here from the bot, <a href="https://github.com/Yudodissed/dfrep/tree/main?readme=1#commands">click here for the command list.</a>
 </p>
 
 <h3 align="center">
-<a href="https://github.com/Yudodissed/dfrep/new/main?readme=1#commandss">Commands</a> | <a href="https://github.com/Yudodissed/dfrep/new/main?readme=1#faq">FAQ</a> | <a href="https://github.com/Yudodissed/dfrep/new/main?readme=1#contributors-and-license">Contributors and License</a>
+<a href="https://github.com/Yudodissed/dfrep/tree/main?readme=1#commands">Commands</a> | <a href="https://github.com/Yudodissed/dfrep/tree/main?readme=1#faq">FAQ</a> | <a href="https://github.com/Yudodissed/dfrep/tree/main?readme=1#contributors-and-license">Contributors and License</a>
 <h3>
 
 ---
