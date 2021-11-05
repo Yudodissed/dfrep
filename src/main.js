@@ -8,7 +8,7 @@ const db = require('./db')
 
 const restrictedCommands = ['quickrep', '+rep', '-rep'] //cmds that require registration
 const admin = ['Yudodiss']
-const whitelist = ['Yudodiss', 'Mr_Dumpling','Proxxa'] //comment out to disable whitelist and enable blacklist
+const whitelist = ['Yudodiss', 'Mr_Dumpling','Proxxa', 'The_Slimy_Knight'] //comment out to disable whitelist and enable blacklist
 const blacklist = []
 
 let mcUser
@@ -77,25 +77,33 @@ bot.on('chat', (username, message, translate, jsonMsg) => {
       if (data !== false) {
         updateTimestamp()
         switch(args[0]) {
-          case 'quickrep':
-            console.log(timestamp + '/quickrep from ' + sender + ' ["/' + message +'"]')
-            cmd.quickrep(sender, args[1])
+          case 'profile':
+            console.log(timestamp + '/profile from ' + sender + ' ["/' + message +'"]')
+            cmd.profile(sender, args[1])
           break
           case 'register':
             console.log(timestamp + '/register from ' + sender + ' ["/' + message +'"]')
             cmd.register(sender)
           break
           case '+rep':
-            console.log(timestamp + '+rep from ' + sender + ' ["/' + message +'"]')
+            console.log(timestamp + '/+rep from ' + sender + ' ["/' + message +'"]')
             cmd.plusRep(sender, args)
           break
           case '-rep':
-            console.log(timestamp + '-rep from ' + sender + ' ["/' + message +'"]')
+            console.log(timestamp + '/-rep from ' + sender + ' ["/' + message +'"]')
             cmd.minusRep(sender, args)
           break
           case 'unrep':
-            console.log(timestamp + 'unrep from ' + sender + ' ["/' + message +'"]')
+            console.log(timestamp + '/unrep from ' + sender + ' ["/' + message +'"]')
             cmd.unrep(sender, args[1])
+          break
+          case 'letter':
+            console.log(timestamp + '/letter from ' + sender + ' ["/' + message +'"]')
+            cmd.letter(sender, args)
+          break
+          case 'mail':
+            console.log(timestamp + '/inbox from ' + sender + ' ["/' + message +'"]')
+            cmd.mail(sender, args)
           break
           /* For future debug use
           case 'writesql':
@@ -159,9 +167,9 @@ const respond = async function respond(target, message) {
         updateTimestamp()
         console.log(timestamp + 'Message sent to ' +  queuedTrgt + ': "' + queuedMsg + '"')
         console.log('---')
-      } else console.log(timestamp + 'Dropped message for ' + queuedTrgt + '. Retrying in ~2.8 seconds.') //Idk why this doesn't send lol
+      } else console.log(timestamp + 'Dropped message for ' + queuedTrgt + '. Retrying in ~2.8 seconds.')
       await sleep(2800) // For the future: Owen said message delay is related to message length?
-    }
+    }                   // nvm rip owen
   }
   queueRunning = false
 }

@@ -3,14 +3,18 @@ const mineflayer = require('mineflayer')
 const fs = require('fs')
 const { timeStamp } = require('console')
 const objectPath = require('object-path')
+const crypto = require('crypto');
 
 const main = require('./main')
 const db = require('./db')
 
-//------------------------ /quickrep ------------------------//
+// Contains messages to be passed through multiple /letter iterations for /letter cconfirm and the like
+let letterStorage = {}
+
+//------------------------ /profile ------------------------//      //Change to profile command lol
 //Quickly gives an overview of a players data.
 
-const quickrep = function (sender, victim) {
+exports.profile = function (sender, victim) {
     if (victim === undefined) victim = sender
     db.readData(victim).then(data => {
         if (data !== false) {false
@@ -18,16 +22,14 @@ const quickrep = function (sender, victim) {
             if (displayBadge = "false") {
                 displayBadge = 'No Badge'
             }
-            main.respond(sender, `${victim}: | ${data.reputation.ratings.karma} Karma | ${Object.keys(data.statistics.ratedBy).length} Voters | ${displayBadge}`)
+            main.respond(sender, `[✎]: ${victim} | ${data.reputation.ratings.karma} Karma (${data.reputation.ratings.buildRating} build, ${data.reputation.ratings.devRating} dev, ${data.reputation.ratings.friendlyRating} generic) | ${Object.keys(data.statistics.ratedBy).length} Voters | ${displayBadge}`)
         } else {
             let timestamp = main.updateTimestamp()
             console.log(timestamp + 'Invalid argument recieved from ' + sender)
-            main.respond(sender, 'Invalid user. Is that player registered? Do /msg dfrep help for more.')
+            main.respond(sender, '[❌]: Invalid user. Is that player registered? Do /msg dfrep help for more.')
         }
     })
 }
-
-exports.quickrep = quickrep;
 
 //------------------------ /register ------------------------//
 // Creates a players data file. Most code is spaghetti'd
@@ -40,13 +42,13 @@ const register = function (sender) {
                 if (output === true) {
                     let timestamp = main.updateTimestamp()
                     console.log(timestamp+`${sender} has registered!`)
-                    main.respond(sender, "You've been registered! Welcome to dfrep! Try out /msg dfrep help for more.")  
+                    main.respond(sender, "[✔]: You've been registered! Welcome to dfrep! Try out /msg dfrep help for more.")
                 }
             })
         } else {
             let timestamp = main.updateTimestamp()
             console.log(timestamp + 'Invalid argument recieved from ' + sender)
-            main.respond(sender, 'You already seem to be registered.')
+            main.respond(sender, '[❌]: You already seem to be registered.')
         }
     })
 }
@@ -68,7 +70,7 @@ const plusRep = function (sender, args) {
             } else {
                 let timestamp = main.updateTimestamp()
                 console.log(timestamp + 'Invalid argument recieved from ' + sender)
-                main.respond(sender, '☒ Invalid type. Do /msg dfrep help for more.')
+                main.respond(sender, '[❌]: Invalid type. Do /msg dfrep help for more.')
                 return
             }
         } else repType = 'friendlyRating'
@@ -107,22 +109,22 @@ const plusRep = function (sender, args) {
                             }
                         })
                     })
-                    main.respond(sender, '☑ /+rep completed. Do /msg dfrep karma ' + victim + ' to check!')
+                    main.respond(sender, '[✔]: /+rep completed. Do /msg dfrep profile ' + victim + ' to check!')
                 } else {
                     let timestamp = main.updateTimestamp()
                     console.log(timestamp + sender + ' failed +rep for ' + victim)
-                    main.respond(sender, "☒ You've already given this player a +rep!")
+                    main.respond(sender, "[❌]: You've already given this player a +rep!")
                 }
             } else {
                 let timestamp = main.updateTimestamp()
                 console.log(timestamp + 'Invalid argument recieved from ' + sender)
-                main.respond(sender, '☒ Invalid user. Is that player registered? Do /msg dfrep help for more.')
+                main.respond(sender, '[❌]: Invalid user. Is that player registered? Do /msg dfrep help for more.')
             }
         })
     } else {
         let timestamp = main.updateTimestamp()
         console.log(timestamp + sender + 'attempted self +rep.')
-        main.respond(sender, "☒ You can't /+rep yourself! Do /msg dfrep help for more.")
+        main.respond(sender, "[❌]: You can't /+rep yourself! Do /msg dfrep help for more.")
     }
 }
 
@@ -143,7 +145,7 @@ const minusRep = function (sender, args) {
             } else {
                 let timestamp = main.updateTimestamp()
                 console.log(timestamp + 'Invalid argument recieved from ' + sender)
-                main.respond(sender, '☒ Invalid type. Do /msg dfrep help for more.')
+                main.respond(sender, '[❌]: Invalid type. Do /msg dfrep help for more.')
                 return
             }
         } else repType = 'friendlyRating'
@@ -180,22 +182,22 @@ const minusRep = function (sender, args) {
                             }
                         })
                     })
-                    main.respond(sender, '☑ /-rep completed. Do /msg dfrep karma ' + victim + ' to check!')
+                    main.respond(sender, '[✔]: /-rep completed. Do /msg dfrep profile ' + victim + ' to check!')
                 } else {
                     let timestamp = main.updateTimestamp()
                     console.log(timestamp + sender + 'failed -rep for' + victim)
-                    main.respond(sender, "☒ You've already given this player a -rep!")
+                    main.respond(sender, "[❌]: You've already given this player a -rep!")
                 }
             } else {
                 let timestamp = main.updateTimestamp()
                 console.log(timestamp + 'Invalid argument recieved from ' + sender)
-                main.respond(sender, '☒ Invalid user. Is that player registered? Do /msg dfrep help for more.')
+                main.respond(sender, '[❌]: Invalid user. Is that player registered? Do /msg dfrep help for more.')
             }
         })
     } else {
         let timestamp = main.updateTimestamp()
         console.log(timestamp + sender + 'attempted self -rep.')
-        main.respond(sender, "☒ You can't /-rep yourself! Do /msg dfrep help for more.")
+        main.respond(sender, "[❌]: You can't /-rep yourself! Do /msg dfrep help for more.")
     }
 }
 
@@ -226,7 +228,7 @@ const unrep = function (sender, victim) {
                 } else {
                     let timestamp = main.updateTimestamp()
                     console.log(timestamp + sender + 'failed unrep for' + victim)
-                    main.respond(sender, "☒ You haven't +/-repped this player!")
+                    main.respond(sender, "[❌]: You haven't +/-repped this player!")
                 }
                 db.readData(victim).then(data => {
                     if (validReq) {
@@ -242,20 +244,133 @@ const unrep = function (sender, victim) {
                               return console.error(error.message)
                             }
                         })
-                        main.respond(sender, '☑ /unrep completed. Do /msg dfrep karma ' + victim + ' to check!')
+                        main.respond(sender, '[✔]: /unrep completed. Do /msg dfrep profile ' + victim + ' to check!')
                     }
                 })
             } else {
                 let timestamp = main.updateTimestamp()
                 console.log(timestamp + 'Invalid argument recieved from ' + sender)
-                main.respond(sender, '☒ Invalid user. Is that player registered? Do /msg dfrep help for more.')
+                main.respond(sender, '[❌]: Invalid user. Is that player registered? Do /msg dfrep help for more.')
             }
         } else {
             let timestamp = main.updateTimestamp()
             console.log(timestamp + sender + 'attempted self unrep.')
-            main.respond(sender, "☒ You can't unrep yourself! Do /msg dfrep help for more.")
+            main.respond(sender, "[❌]: You can't unrep yourself! Do /msg dfrep help for more.")
         }
     })
 }
 
 exports.unrep = unrep;
+
+//----------------------- /letter -----------------------//
+// Leaves a letter in a players inbox. Maximum 100 char
+// messages. Long cooldown. Trusted users only.
+
+const letter = function (sender, args) {
+    if (args[1] === "confirm") {
+        if (sender in letterStorage) {
+            let data = letterStorage[sender]
+            delete letterStorage[sender]
+            data = data.split(".")
+            let victim = data[0]
+            let message = data[1]
+            db.writeLetter(sender, victim, message).then(result => {
+                if (result === true) {
+                    let timestamp = main.updateTimestamp()
+                    console.log(timestamp + 'Message sent from ' + sender + ' to ' + victim)
+                    main.respond(sender, '[✔]: Letter sent to ' + victim + '!')
+                } else {
+                    let timestamp = main.updateTimestamp()
+                    console.log(timestamp + 'Message failed for ' + sender + ' to ' + victim + ". Their mailbox is full!")
+                    main.respond(sender, '[❌]: ' + victim + 's mailbox is full!')
+                }
+            })
+        } else {
+            let timestamp = main.updateTimestamp()
+            console.log(timestamp + 'No letter to confirm from ' + sender)
+            main.respond(sender, '[❌]: No letter to confirm!')
+        }
+    } else {
+        let victim = args[1]
+        db.readData(victim).then(data => {
+            if (data !== false) {
+                let message = args.slice(2)
+                message = message.join(" ")
+                if (message.length <= 100) {
+                    letterStorage[`${sender}`] = victim + "." + message
+                    let timestamp = main.updateTimestamp()
+                    console.log(timestamp + 'Letter added to storage by ' + sender + ": " + '"' + message + '"')
+                    main.respond(sender, '[?]: Are you sure? /msg dfrep letter confirm.')
+                } else {
+                    let timestamp = main.updateTimestamp()
+                    console.log(timestamp + 'Too large a message recieved from ' + sender)
+                    main.respond(sender, '[❌]: Your letter can at most be 100 characters. Your message is ' + message.length + ' characters long.')
+                }
+            } else {
+                let timestamp = main.updateTimestamp()
+                console.log(timestamp + 'Invalid argument recieved from ' + sender)
+                main.respond(sender, '[❌]: Invalid user. Is that player registered? Do /msg dfrep help for more.')
+            }
+        })
+    }
+}
+
+exports.letter = letter;
+
+//----------------------- /mail -----------------------//
+// Reads, deletes, or lists letters in your inbox.
+// 99 Messages maximum.
+
+const mail = function (sender, args) {
+    if (args.length === 1) {
+        db.readInbox(sender).then(data => {
+            let timestamp = main.updateTimestamp()
+            console.log(timestamp + 'List of messages requested for ' + sender)
+            let tidy = "messages"
+            if (Object.keys(data).length === 2) {tidy = "message"}
+            main.respond(sender, `[✉] You have (${--Object.keys(data).length}) ${tidy}.`)
+        })
+    } else {
+        if (args[1] === "del") {
+            let index = parseInt(args[2], 10)
+            console.log(index)
+            db.readInbox(sender).then(data => {
+                let keyCount = --Object.keys(data).length
+                if (index > keyCount) {
+                    let timestamp = main.updateTimestamp()
+                    console.log(timestamp + 'Out of bound index from ' + sender)
+                    main.respond(sender, '[❌]: There is no message at that index.')
+                } else {
+                    db.burnLetter(sender, index).then(result => {
+                        if (result === true) {
+                            let timestamp = main.updateTimestamp()
+                            console.log(timestamp + 'Letter deleted by ' + sender)
+                            main.respond(sender, '[✔]: Letter deleted!')
+                        } else {
+                            let timestamp = main.updateTimestamp()
+                            console.log(timestamp + 'Out of bound index from ' + sender)
+                            main.respond(sender, '[❌]: There is no message at that index.')
+                        }
+                    })
+                }
+            })
+        } else {
+            let index = parseInt(args[1], 10)
+            db.readInbox(sender).then(data => {
+                let keyCount = --Object.keys(data).length
+                if (index > keyCount || index <= 0) {
+                    let timestamp = main.updateTimestamp()
+                    console.log(timestamp + 'Out of bound index from ' + sender + "|"+index)
+                    main.respond(sender, '[❌]: There is no message at that index.')
+                } else {
+                    let indexID = Object.keys(data)[--index]
+                    let message = data[indexID]["message"]
+                    let origin = data[indexID]["sender"]
+                    main.respond(sender, `(${++index}) [✉ ${origin}]: ${message}`)                
+                }
+            })
+        }
+    }
+}
+
+exports.mail = mail;
