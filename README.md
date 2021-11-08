@@ -97,10 +97,10 @@ In this document, when the format ```/[command]``` is used, it is implied you ar
   This requirement will increase as the userbase does.
   
 ## How can I report a bug?
-  Use the issues section on this github!
+  Use the issues section on this Github!
   
 ## How should I report vulnerabilites or malicious users?
-  DM me on Discord: @Yudo#8472. Don't make an issue on the GitHub!
+  DM me on Discord: @Yudo#8472. Don't make an issue on the Github!
 
 ---
 
