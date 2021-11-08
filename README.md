@@ -65,20 +65,12 @@ In this document, when the format ```/[command]``` is used, it is implied you ar
     <td>Undoes a +rep or -rep you've given a player.</td>
   </tr>
   <tr>
-<<<<<<< HEAD
     <td>/mail [index]</td>
-=======
-    <td>/inbox [index]</td>
->>>>>>> b2e278b65627deb448d0eae947fb0156a37f15cb
     <td>Registration</td>
     <td>If no argument is given, lists basic information about inbox. If argument is given, reads the message at index.</td>
   </tr>
   <tr>
-<<<<<<< HEAD
     <td>/mail del &lt;index&gt;</td>
-=======
-    <td>/inbox del &lt;index&gt;</td>
->>>>>>> b2e278b65627deb448d0eae947fb0156a37f15cb
     <td>Registration</td>
     <td>Deletes a letter from your inbox.</td>
   </tr>
@@ -99,7 +91,6 @@ In this document, when the format ```/[command]``` is used, it is implied you ar
 
 # FAQ
 
-<<<<<<< HEAD
 ## What does "Trusted User" mean?
   A trusted user is someone who has proven themselves to be responsible and reputable. This is represented by a badge on their profile. As a trusted user,
   they can use some commands others can't, and have a reduced cooldown on some commands. This badge can currently be earned by gaining at least 5 total karma.
@@ -110,9 +101,6 @@ In this document, when the format ```/[command]``` is used, it is implied you ar
   
 ## How should I report vulnerabilites or malicious users?
   DM me on Discord: @Yudo#8472. Don't make an issue on the GitHub!
-=======
-todo lol
->>>>>>> b2e278b65627deb448d0eae947fb0156a37f15cb
 
 ---
 

@@ -80,7 +80,6 @@ bot.on('chat', (username, message, translate, jsonMsg) => {
         return
       }
     }
-<<<<<<< HEAD
     let command = args[0]
     if (cmdMap.has(command)) {
       let cmd = cmdMap.get(command)
@@ -91,60 +90,6 @@ bot.on('chat', (username, message, translate, jsonMsg) => {
       console.log(timestamp + 'Invalid command from ' + sender + ' ["/' + message +'"]')
       respond(sender, 'Invalid command. Try /msg dfrep help for help!')
     }
-=======
-    db.readData(sender).then(data => {
-      if (!(restrictedCommands.includes(args[0]))) {
-        data = true
-      }
-      if (data !== false) {
-        updateTimestamp()
-        switch(args[0]) {
-          case 'profile':
-            console.log(timestamp + '/profile from ' + sender + ' ["/' + message +'"]')
-            cmd.profile(sender, args[1])
-          break
-          case 'register':
-            console.log(timestamp + '/register from ' + sender + ' ["/' + message +'"]')
-            cmd.register(sender)
-          break
-          case '+rep':
-            console.log(timestamp + '/+rep from ' + sender + ' ["/' + message +'"]')
-            cmd.plusRep(sender, args)
-          break
-          case '-rep':
-            console.log(timestamp + '/-rep from ' + sender + ' ["/' + message +'"]')
-            cmd.minusRep(sender, args)
-          break
-          case 'unrep':
-            console.log(timestamp + '/unrep from ' + sender + ' ["/' + message +'"]')
-            cmd.unrep(sender, args[1])
-          break
-          case 'letter':
-            console.log(timestamp + '/letter from ' + sender + ' ["/' + message +'"]')
-            cmd.letter(sender, args)
-          break
-          case 'mail':
-            console.log(timestamp + '/inbox from ' + sender + ' ["/' + message +'"]')
-            cmd.mail(sender, args)
-          break
-          /* For future debug use
-          case 'writesql':
-            db.writeData(args[1], args[2], args[3], args[4])
-          break
-          */
-          default:
-            console.log(timestamp + 'Invalid command from ' + sender + ' ["/' + message +'"]')
-            respond(sender, 'Invalid command. Try /msg dfrep help for help!')
-          break
-        }
-      } else {
-        updateTimestamp()
-        console.log(timestamp + sender + ' attempted registered user only command.')
-        respond(sender, 'You must be registered to use that command.')
-        return
-      }
-    })
->>>>>>> b2e278b65627deb448d0eae947fb0156a37f15cb
   }
 })
 
