@@ -5,7 +5,6 @@ const mysql = require('mysql')
 const objectPath = require('object-path')
 
 const main = require('./main')
-const cmd = require('./cmd')
 const { connected } = require('process')
 
 let db_login = {}
@@ -18,14 +17,14 @@ if (fs.existsSync('src/login/login.json')) {
     host: loginJSON['sql']['host'],
     user: loginJSON['sql']['user'],
     password: loginJSON['sql']['pass'],
-    database: 'heroku_44c48d0ecdeed08'
+    database: loginJSON['sql']['database']
   }
 } else {
   db_login = {
     host: process.env.HOST,
     user: process.env.USER,
     password: process.env.PASS,
-    database: 'heroku_44c48d0ecdeed08'
+    database: process.env.DATABASE
   }
 }
 
@@ -84,6 +83,8 @@ const readData = function (player) {
   })
 }
 
+exports.readData = readData
+
 //------------------------ Write User Data ------------------------//
 // parseBool should be true if newData is a number, and false if
 // it's text. Note that modifying a rating also modifies karma.
@@ -109,12 +110,14 @@ const writeData = function (user, path, newData, parseBool) {
   })
 }
 
+exports.writeData = writeData
+
 //------------------------- Register User -------------------------//
 // Refer to cmd.js /register
 
 const register = function (user) {
   let starterData = fs.readFileSync('template_data.json')
-  let sql = `INSERT INTO maindb(user,data) VALUES ('${user}','${starterData}')`
+  let sql = `INSERT INTO maindb(user,data,inbox) VALUES ('${user}','${starterData}','{"msgID":0}')`
   return new Promise ((resolve, reject) => {
     con.query(sql, (error, results) => {
       if (error) {
@@ -126,8 +129,96 @@ const register = function (user) {
   })
 }
 
-exports.readData = readData;
-exports.writeData = writeData;
-exports.register = register;
+exports.register = register
 
-handleDisconnect();
+//------------------------- Write Letter -------------------------//
+// Puts a message in a users inbox column object. Uses
+// unique IDs from their object.
+
+const writeLetter = function (sender, victim, message) {
+  let sql = "SELECT inbox FROM maindb WHERE user='" + victim + "'"
+  return new Promise ((resolve, reject) => {
+    con.query(sql, (error, results) => {
+      if (error) {
+        return error
+      }
+      let data = JSON.parse(results[0]['inbox'])
+      if (Object.keys(data).length < 100) {
+        let msgID = ++data["msgID"]
+        data[msgID] = {"sender": sender, "message": message,}
+        let stringyData = JSON.stringify(data)
+        let sql = `UPDATE maindb SET inbox = '${stringyData}' WHERE user = "${victim}"`
+        con.query(sql, (error, results) => {
+          if (error) {
+            return console.error(error.message)
+          }
+          resolve(true)
+        })
+      } else {
+        resolve(false)
+      }
+    })
+  })
+}
+
+exports.writeLetter = writeLetter
+
+//------------------------- Burn Letter -------------------------//
+// Almost identical to writeLetter. In fact, I copy-pasted it.
+// Just like I copy-pasted writeData to make writeLetter.
+
+const burnLetter = function (sender, index) {
+  let sql = "SELECT inbox FROM maindb WHERE user='" + sender + "'"
+  return new Promise ((resolve, reject) => {
+    con.query(sql, (error, results) => {
+      if (error) {
+        return error
+      }
+      readInbox(sender).then(data => {
+        console.log("index:")
+        console.log(index)
+        let indexID = Object.keys(data)[--index]
+        if (indexID === "msgID") {
+          resolve(false)
+        } else {
+          delete data[indexID]
+          let stringyData = JSON.stringify(data)
+          let sql = `UPDATE maindb SET inbox = '${stringyData}' WHERE user = "${sender}"`
+          con.query(sql, (error, results) => {
+            if (error) {
+              return console.error(error.message)
+            }
+            resolve(true)
+          })
+        }
+      })
+    })
+  })
+}
+
+exports.burnLetter = burnLetter
+
+//-------------------------- Read Inbox --------------------------//
+
+const readInbox = function (player) {
+  return new Promise ((resolve, reject) => {
+    sql = "SELECT inbox FROM maindb WHERE user='" + player + "'"
+    con.query(sql, (error, results) => {
+      if (error) {
+        reject(error)
+      }
+      let data = JSON.parse(results[0]['inbox']) // <--- this motherfucker
+      resolve(data)
+    })
+  })
+}
+
+exports.readInbox = readInbox
+
+/*---Handle Haiku---//
+   handleDisconnect
+ Alone in your corner
+  This haiku for you
+//-----By midge-----*/
+
+handleDisconnect()

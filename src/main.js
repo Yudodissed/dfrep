@@ -3,12 +3,11 @@ const fs = require('fs')
 const {timeStamp} = require('console')
 const { report, connected } = require('process')
 const mysql = require('mysql')
-const cmd = require('./cmd')
 const db = require('./db')
 
-const restrictedCommands = ['quickrep', '+rep', '-rep'] //cmds that require registration
+//const restrictedCommands = ['quickrep', '+rep', '-rep'] //cmds that require registration   // disabled due to rework
 const admin = ['Yudodiss']
-const whitelist = ['Yudodiss', 'Mr_Dumpling','Proxxa'] //comment out to disable whitelist and enable blacklist
+const whitelist = ['Yudodiss', 'Mr_Dumpling','Proxxa', 'The_Slimy_Knight'] //comment out to disable whitelist and enable blacklist
 const blacklist = []
 
 let mcUser
@@ -33,6 +32,17 @@ const bot = mineflayer.createBot({
   auth: 'microsoft',
 })
 
+// Cache commands
+let cmdMap = new Map()
+fs.readdir('./src/cmds', function(err, files) {
+  if (err) throw err
+  files.forEach(function(filename) {
+    let cmdOnFile = filename.split('.')[0]
+    let cmd = require('./cmds/' + cmdOnFile + '.js')
+    cmdMap.set(cmd.callsign, cmd)
+  })
+})
+
 //----------------------- Monitoring -----------------------//
 
 bot.on('login', () => {updateTimestamp(); console.log(timestamp + 'Connected!')})
@@ -49,9 +59,9 @@ bot.on('messagestr', (commonChat) => {
   } else dropHook = false
 })
 
-//------------------------ Commands ------------------------//
-
+//------------------------ Executor ------------------------//
 //Detects, formats, filters, then directs requests
+
 bot.on('chat', (username, message, translate, jsonMsg) => {
   if (username === bot.username) return
   if (username === 'You') {
@@ -70,50 +80,16 @@ bot.on('chat', (username, message, translate, jsonMsg) => {
         return
       }
     }
-    db.readData(sender).then(data => {
-      if (!(restrictedCommands.includes(args[0]))) {
-        data = true
-      }
-      if (data !== false) {
-        updateTimestamp()
-        switch(args[0]) {
-          case 'quickrep':
-            console.log(timestamp + '/quickrep from ' + sender + ' ["/' + message +'"]')
-            cmd.quickrep(sender, args[1])
-          break
-          case 'register':
-            console.log(timestamp + '/register from ' + sender + ' ["/' + message +'"]')
-            cmd.register(sender)
-          break
-          case '+rep':
-            console.log(timestamp + '+rep from ' + sender + ' ["/' + message +'"]')
-            cmd.plusRep(sender, args)
-          break
-          case '-rep':
-            console.log(timestamp + '-rep from ' + sender + ' ["/' + message +'"]')
-            cmd.minusRep(sender, args)
-          break
-          case 'unrep':
-            console.log(timestamp + 'unrep from ' + sender + ' ["/' + message +'"]')
-            cmd.unrep(sender, args[1])
-          break
-          /* For future debug use
-          case 'writesql':
-            db.writeData(args[1], args[2], args[3], args[4])
-          break
-          */
-          default:
-            console.log(timestamp + 'Invalid command from ' + sender + ' ["/' + message +'"]')
-            respond(sender, 'Invalid command. Try /msg dfrep help for help!')
-          break
-        }
-      } else {
-        updateTimestamp()
-        console.log(timestamp + sender + ' attempted registered user only command.')
-        respond(sender, 'You must be registered to use that command.')
-        return
-      }
-    })
+    let command = args[0]
+    if (cmdMap.has(command)) {
+      let cmd = cmdMap.get(command)
+      updateTimestamp()
+      console.log(timestamp + `/${command} from ${sender} ["/${message}"]`)
+      cmd.run(sender, args)
+    } else {
+      console.log(timestamp + 'Invalid command from ' + sender + ' ["/' + message +'"]')
+      respond(sender, 'Invalid command. Try /msg dfrep help for help!')
+    }
   }
 })
 
@@ -127,12 +103,6 @@ let timestamp
 
 const sleep = function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-const userData = function userData(user) {
-  let data = fs.readFileSync('playerdata/' + user + '_data.json');
-  let parsedJSON = JSON.parse(data)
-  return parsedJSON
 }
 
 //Queues up responses, and operates every ~3 seconds.
@@ -159,9 +129,9 @@ const respond = async function respond(target, message) {
         updateTimestamp()
         console.log(timestamp + 'Message sent to ' +  queuedTrgt + ': "' + queuedMsg + '"')
         console.log('---')
-      } else console.log(timestamp + 'Dropped message for ' + queuedTrgt + '. Retrying in ~2.8 seconds.') //Idk why this doesn't send lol
+      } else console.log(timestamp + 'Dropped message for ' + queuedTrgt + '. Retrying in ~2.8 seconds.')
       await sleep(2800) // For the future: Owen said message delay is related to message length?
-    }
+    }                   // nvm rip owen
   }
   queueRunning = false
 }
@@ -186,6 +156,5 @@ async function cornerWalk() {
 }
 
 exports.sleep = sleep;
-exports.userData = userData;
 exports.respond = respond;
 exports.updateTimestamp = updateTimestamp;
