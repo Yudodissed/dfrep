@@ -31,37 +31,21 @@ module.exports = {
             if (data !== false) {
                 let validReq = false
                 let undoType = "none"
+                let senderRating = data.statistics.ratedBy[sender]
                 if (!(sender in data.statistics.ratedBy)) {
                     validReq = true
-                } else {
-                    if (
-                    data.statistics.ratedBy[sender] === "-1.devRating" || 
-                    data.statistics.ratedBy[sender] === "-1.buildRating" || 
-                    data.statistics.ratedBy[sender] === "-1.friendlyRating") {
-                        undoType = data.statistics.ratedBy[sender].split('.')[1]
-                        validReq = true
-                    }5
+                } else if (senderRating === "-1.devRating" || senderRating === "-1.buildRating" || senderRating === "-1.friendlyRating") {
+                    undoType = data.statistics.ratedBy[sender].split('.')[1]
+                    validReq = true
                 }
                 if (validReq) {
-                    db.readData(victim).then(data => {
-                        //You know, I wrote a whole function for this, but it only works when I post modified vers. here
-                        objectPath.set(data, `reputation.ratings.${repType}`, ++data['reputation']['ratings'][repType])
-                        if (undoType !== "none") {
-                            objectPath.set(data, `reputation.ratings.${undoType}`, ++data['reputation']['ratings'][undoType])
-                        }
-                        data.statistics.ratedBy[sender] = `+1.${repType}`
-                        objectPath.set(data, `statistics.ratedBy`, data.statistics.ratedBy)
-                        data.reputation.ratings.karma = data.reputation.ratings.buildRating + 
-                                                        data.reputation.ratings.devRating + 
-                                                        data.reputation.ratings.friendlyRating
-                        let stringyData = JSON.stringify(data)
-                        let sql = `UPDATE maindb SET data = '${stringyData}' WHERE user = "${victim}"`
-                        con.query(sql, (error, results) => {
-                            if (error) {
-                              return console.error(error.message)
-                            }
-                        })
-                    })
+                    let newData = {}
+                    newData[`statistics.ratedBy.${sender}`] = `+1.${repType}`
+                    newData[`reputation.ratings.${repType}`] = ++data['reputation']['ratings'][repType]
+                    if (undoType !== "none") {
+                        newData[`reputation.ratings.${undoType}`] = ++data['reputation']['ratings'][undoType]
+                    }
+                    db.writeData(victim, newData)
                     main.respond(sender, '[✔]: /+rep completed. Do /msg dfrep profile ' + victim + ' to check!')
                 } else {
                     let timestamp = main.updateTimestamp()

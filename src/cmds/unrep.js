@@ -2,6 +2,8 @@
 const main = require('../main')
 const db = require('../db')
 
+const objectPath = require('object-path')
+
 module.exports = {
   
   callsign: "unrep",
@@ -11,6 +13,7 @@ module.exports = {
   cooldown: 0,
 
   run: function (sender, args) {
+    let victim = args[1]
     db.readData(victim).then(data => {
       let validReq
       if (sender !== victim) {
@@ -18,14 +21,13 @@ module.exports = {
               if (sender in data.statistics.ratedBy) {
                   if (data.statistics.ratedBy[sender] === "+1.devRating" || 
                   data.statistics.ratedBy[sender] === "+1.buildRating" || 
-                  data.statistics.ratedBy[sender] === "+1.friendlyRating" ||
+                  data.statistics.ratedBy[sender] === "+1.friendlyRating" ||  // I'm sorry
                   data.statistics.ratedBy[sender] === "-1.devRating" || 
                   data.statistics.ratedBy[sender] === "-1.buildRating" || 
                   data.statistics.ratedBy[sender] === "-1.friendlyRating") {
                       increment = data.statistics.ratedBy[sender].split('.')[0] * -1
                       repType = data.statistics.ratedBy[sender].split('.')[1]
                       validReq = true
-                      console.log(increment)
                   }
               } else {
                   let timestamp = main.updateTimestamp()
@@ -34,7 +36,11 @@ module.exports = {
               }
               db.readData(victim).then(data => {
                   if (validReq) {
-                      objectPath.set(data, `reputation.ratings.${repType}`, data['reputation']['ratings'][repType] + increment)
+                      let newData = {}
+                      newData[`reputation.ratings.${repType}`] = data['reputation']['ratings'][repType] + increment
+                      newData[`statistics.ratedBy.${sender}`] = undefined
+                      db.writeData(victim, newData)
+                      /*objectPath.set(data, `reputation.ratings.${repType}`, data['reputation']['ratings'][repType] + increment)
                       objectPath.set(data, `statistics.ratedBy.${sender}`, undefined)
                       data.reputation.ratings.karma = data.reputation.ratings.buildRating + 
                                                       data.reputation.ratings.devRating + 
@@ -45,7 +51,7 @@ module.exports = {
                           if (error) {
                             return console.error(error.message)
                           }
-                      })
+                      })*/
                       main.respond(sender, '[✔]: /unrep completed. Do /msg dfrep profile ' + victim + ' to check!')
                   }
               })

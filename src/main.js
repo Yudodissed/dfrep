@@ -4,10 +4,11 @@ const {timeStamp} = require('console')
 const { report, connected } = require('process')
 const mysql = require('mysql')
 const db = require('./db')
+const { getPackedSettings } = require('http2')
 
 //const restrictedCommands = ['quickrep', '+rep', '-rep'] //cmds that require registration   // disabled due to rework
 const admin = ['Yudodiss']
-const whitelist = ['Yudodiss', 'Mr_Dumpling','Proxxa', 'The_Slimy_Knight'] //comment out to disable whitelist and enable blacklist
+//const whitelist = ['Yudodiss', 'Mr_Dumpling','Proxxa', 'The_Slimy_Knight'] //comment out to disable whitelist and enable blacklist
 const blacklist = []
 
 let mcUser
@@ -50,15 +51,6 @@ bot.on('spawn', () => {cornerWalk()})
 bot.on('error', error => {updateTimestamp(); console.log(timestamp + error)})
 bot.on('kicked', kickreason => {updateTimestamp(); console.log(timestamp + kickreason)})
 
-//Detects dropped messages for the response queue
-bot.on('messagestr', (commonChat) => {
-  if (true === commonChat.includes('Please wait before sending your next command.')) {
-    if (false === commonChat.includes('You')) {
-      dropHook = true
-    } else dropHook = false
-  } else dropHook = false
-})
-
 //------------------------ Executor ------------------------//
 //Detects, formats, filters, then directs requests
 
@@ -67,6 +59,7 @@ bot.on('chat', (username, message, translate, jsonMsg) => {
   if (username === 'You') {
     let sender = jsonMsg['extra'][1]['text']
     let args = message.split(' ')
+    // Garbage code ends here
     if (typeof whitelist !== 'undefined') {
       if (!whitelist.includes(sender)) {
         updateTimestamp()
@@ -97,41 +90,48 @@ bot.on('chat', (username, message, translate, jsonMsg) => {
 
 let dic = {}
 let queue = []
-let dropHook = false
 let queueRunning = false
 let timestamp
+let goalAge = bot.time.bigAge + BigInt(20)
+let queueID = 0
 
-const sleep = function sleep(ms) {
+const sleep = function (ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-//Queues up responses, and operates every ~3 seconds.
-const respond = async function respond(target, message) {
+//Queues up responses
+const respond = async function (target, message) {
   updateTimestamp()
   console.log(timestamp + 'Message queued for ' + target)
-  dic[target] = message
-  queue.push(target)
+  ++queueID
+  dic[queueID] = [target, message]
+  queue.push(queueID)
   if (queueRunning === false) {
     queueRunning = true
     while (queue.length > 0) {
-      let queuedTrgt = queue[0]
-      let queuedMsg = dic[queuedTrgt]
+      let id = queue[0]
+      let queuedTrgt = dic[id][0]
+      let queuedMsg = dic[id][1]
       if (queuedMsg !== undefined) {
         bot.chat('/msg ' + queuedTrgt + ' ' + queuedMsg)
       } else {
         updateTimestamp()
         console.log(timestamp + 'Undefined response for ' + queuedTrgt)
       }
-      await sleep(200)
-      if (dropHook === false) {
+      let totalLength = queuedTrgt.length + queuedMsg.length + 6 // 6 compensates for spaces and the /msg
+      await sleep(1000)
+      if (bot.time.bigAge >= goalAge) {
         removedTrgt = queue.shift()
-        delete dic[removedTrgt]
+        delete dic[id]
         updateTimestamp()
         console.log(timestamp + 'Message sent to ' +  queuedTrgt + ': "' + queuedMsg + '"')
+        let score = totalLength + 20
+        let cooldownTime = Math.round(score / 25) + 1 // Add 1 second of leniancy 
+        let cooldownTicks = cooldownTime * 20
+        goalAge = bot.time.bigAge + BigInt(cooldownTicks)
         console.log('---')
-      } else console.log(timestamp + 'Dropped message for ' + queuedTrgt + '. Retrying in ~2.8 seconds.')
-      await sleep(2800) // For the future: Owen said message delay is related to message length?
-    }                   // nvm rip owen
+      }
+    }
   }
   queueRunning = false
 }

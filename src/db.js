@@ -86,10 +86,35 @@ const readData = function (player) {
 exports.readData = readData
 
 //------------------------ Write User Data ------------------------//
-// parseBool should be true if newData is a number, and false if
-// it's text. Note that modifying a rating also modifies karma.
+// Modifying a rating also modifies karma. Input data should be
+// an object, where the key is the path and the value is the
+// data to be written.
 
-const writeData = function (user, path, newData, parseBool) {
+const writeData = function(user, inputData) {
+  readData(user).then(data => {
+    let sumBool
+    Object.keys(inputData).forEach(function(key){ // key is path
+      objectPath.set(data, key, inputData[key])
+      if (key.includes('reputation.ratings.')) {
+        sumBool = true
+      }
+    })
+    if (sumBool) {
+      data.reputation.ratings.karma = data.reputation.ratings.buildRating + 
+                                        data.reputation.ratings.devRating + 
+                                        data.reputation.ratings.friendlyRating
+    }
+    let stringyData = JSON.stringify(data)
+    let sql = `UPDATE maindb SET data = '${stringyData}' WHERE user = "${user}"`
+    con.query(sql, (error, results) => {
+      if (error) {
+        return console.error(error.message)
+      }
+    })
+  })
+}
+
+/* const writeData = function (user, path, newData, parseBool) {
   if (parseBool === true) {
     newData = Number(newData)
   }
@@ -108,7 +133,7 @@ const writeData = function (user, path, newData, parseBool) {
         }
     })
   })
-}
+} */
 
 exports.writeData = writeData
 
@@ -215,10 +240,10 @@ const readInbox = function (player) {
 
 exports.readInbox = readInbox
 
-/*---Handle Haiku---//
-   handleDisconnect
- Alone in your corner
-  This haiku for you
-//-----By midge-----*/
+/*----Handle Haiku----//
+    handleDisconnect
+ important yet forgotten
+   this haiku for you
+//------By midge------*/
 
 handleDisconnect()
