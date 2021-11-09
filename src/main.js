@@ -101,12 +101,12 @@ let dropHook = false
 let queueRunning = false
 let timestamp
 
-function sleep(ms) {
+const sleep = function (ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 //Queues up responses, and operates every ~3 seconds.
-async function respond(target, message) {
+const respond = async function (target, message) {
   updateTimestamp()
   console.log(timestamp + 'Message queued for ' + target)
   dic[target] = message
