@@ -4,7 +4,7 @@
 
 <p align="center">
  <a>
-  <img src="https://img.shields.io/badge/Version-1.0.0-blueviolet" alt="Version 1.0.0">
+  <img src="https://img.shields.io/badge/Version-1.0.1-blueviolet" alt="Version 1.0.1">
  </a>
  <a href="https://www.gnu.org/licenses/gpl-3.0">
   <img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="GNU License">
@@ -97,10 +97,10 @@ In this document, when the format ```/[command]``` is used, it is implied you ar
   This requirement will increase as the userbase does.
   
 ## How can I report a bug?
-  Use the issues section on this github!
+  Use the issues section on this Github!
   
 ## How should I report vulnerabilites or malicious users?
-  DM me on Discord: @Yudo#8472. Don't make an issue on the GitHub!
+  DM me on Discord: @Yudo#8472. Don't make an issue on the Github!
 
 ---
 
