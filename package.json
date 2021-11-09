@@ -31,7 +31,6 @@
     "console": "^0.7.2",
     "fs": "^0.0.1-security",
     "mineflayer": "^3.11.2",
-    "mineflayer-tps": "^1.0.1",
     "mysql": "^2.18.1",
     "object-path": "^0.11.8",
     "process": "^0.11.10"

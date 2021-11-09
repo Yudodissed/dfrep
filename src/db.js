@@ -1,14 +1,11 @@
 const mineflayer = require('mineflayer')
 const fs = require('fs')
-const {timeStamp} = require('console')
 const mysql = require('mysql')
 const objectPath = require('object-path')
 
 const main = require('./main')
-const { connected } = require('process')
 
 let db_login = {}
-var connection
 
 if (fs.existsSync('src/login/login.json')) {
   let rawLogin = fs.readFileSync('src/login/login.json')
@@ -114,27 +111,6 @@ const writeData = function(user, inputData) {
   })
 }
 
-/* const writeData = function (user, path, newData, parseBool) {
-  if (parseBool === true) {
-    newData = Number(newData)
-  }
-  readData(user).then(data => {
-    objectPath.set(data, path, newData)
-    if (path.includes('reputation.ratings.')) {
-      data.reputation.ratings.karma = data.reputation.ratings.buildRating + 
-                                      data.reputation.ratings.devRating + 
-                                      data.reputation.ratings.friendlyRating
-    }
-    let stringyData = JSON.stringify(data)
-    let sql = `UPDATE maindb SET data = '${stringyData}' WHERE user = "${user}"`
-    con.query(sql, (error, results) => {
-        if (error) {
-          return console.error(error.message)
-        }
-    })
-  })
-} */
-
 exports.writeData = writeData
 
 //------------------------- Register User -------------------------//
@@ -232,7 +208,7 @@ const readInbox = function (player) {
       if (error) {
         reject(error)
       }
-      let data = JSON.parse(results[0]['inbox']) // <--- this motherfucker
+      let data = JSON.parse(results[0]['inbox'])
       resolve(data)
     })
   })

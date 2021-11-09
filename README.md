@@ -91,6 +91,11 @@ In this document, when the format ```/[command]``` is used, it is implied you ar
 
 # FAQ
 
+## Why does response time vary so much?
+  In short, because of DiamondFires anti-spam feature. Each time dfrep sends a message, it calculates the cooldown it needs until it can send another
+  message. This means it is sending messages as fast as possible, but if multiple users are using it at once, it may lag behind by a lot. On average,
+  it takes a cooldown of about two to three seconds per message.
+
 ## What does "Trusted User" mean?
   A trusted user is someone who has proven themselves to be responsible and reputable. This is represented by a badge on their profile. As a trusted user,
   they can use some commands others can't, and have a reduced cooldown on some commands. This badge can currently be earned by gaining at least 5 total karma.

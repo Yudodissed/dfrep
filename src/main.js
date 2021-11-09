@@ -1,14 +1,12 @@
+
 const mineflayer = require('mineflayer')
 const fs = require('fs')
-const {timeStamp} = require('console')
-const { report, connected } = require('process')
 const mysql = require('mysql')
 const db = require('./db')
-const { getPackedSettings } = require('http2')
 
 //const restrictedCommands = ['quickrep', '+rep', '-rep'] //cmds that require registration   // disabled due to rework
 const admin = ['Yudodiss']
-//const whitelist = ['Yudodiss', 'Mr_Dumpling','Proxxa', 'The_Slimy_Knight'] //comment out to disable whitelist and enable blacklist
+const whitelist = ['Yudodiss', 'Mr_Dumpling','Proxxa', 'The_Slimy_Knight'] //comment out to disable whitelist and enable blacklist
 const blacklist = []
 
 let mcUser
@@ -33,17 +31,6 @@ const bot = mineflayer.createBot({
   auth: 'microsoft',
 })
 
-// Cache commands
-let cmdMap = new Map()
-fs.readdir('./src/cmds', function(err, files) {
-  if (err) throw err
-  files.forEach(function(filename) {
-    let cmdOnFile = filename.split('.')[0]
-    let cmd = require('./cmds/' + cmdOnFile + '.js')
-    cmdMap.set(cmd.callsign, cmd)
-  })
-})
-
 //----------------------- Monitoring -----------------------//
 
 bot.on('login', () => {updateTimestamp(); console.log(timestamp + 'Connected!')})
@@ -54,12 +41,22 @@ bot.on('kicked', kickreason => {updateTimestamp(); console.log(timestamp + kickr
 //------------------------ Executor ------------------------//
 //Detects, formats, filters, then directs requests
 
+let cmdMap = new Map()
+
+fs.readdir('./src/cmds', function(err, files) {
+  if (err) throw err
+  files.forEach(function(filename) {
+    let cmdOnFile = filename.split('.')[0]
+    let cmd = require('./cmds/' + cmdOnFile + '.js')
+    cmdMap.set(cmd.callsign, cmd)
+  })
+})
+
 bot.on('chat', (username, message, translate, jsonMsg) => {
   if (username === bot.username) return
   if (username === 'You') {
     let sender = jsonMsg['extra'][1]['text']
     let args = message.split(' ')
-    // Garbage code ends here
     if (typeof whitelist !== 'undefined') {
       if (!whitelist.includes(sender)) {
         updateTimestamp()
@@ -86,20 +83,14 @@ bot.on('chat', (username, message, translate, jsonMsg) => {
   }
 })
 
-//------------------------ Functions ------------------------//
+//----------------------- Message Queue -----------------------//
 
 let dic = {}
 let queue = []
 let queueRunning = false
-let timestamp
-let goalAge = bot.time.bigAge + BigInt(20)
+let goalAge = bot.time.bigAge
 let queueID = 0
 
-const sleep = function (ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-//Queues up responses
 const respond = async function (target, message) {
   updateTimestamp()
   console.log(timestamp + 'Message queued for ' + target)
@@ -112,29 +103,32 @@ const respond = async function (target, message) {
       let id = queue[0]
       let queuedTrgt = dic[id][0]
       let queuedMsg = dic[id][1]
-      if (queuedMsg !== undefined) {
-        bot.chat('/msg ' + queuedTrgt + ' ' + queuedMsg)
-      } else {
-        updateTimestamp()
-        console.log(timestamp + 'Undefined response for ' + queuedTrgt)
-      }
-      let totalLength = queuedTrgt.length + queuedMsg.length + 6 // 6 compensates for spaces and the /msg
-      await sleep(1000)
+      await sleep(100)
       if (bot.time.bigAge >= goalAge) {
         removedTrgt = queue.shift()
         delete dic[id]
+        bot.chat('/msg ' + queuedTrgt + ' ' + queuedMsg)
         updateTimestamp()
         console.log(timestamp + 'Message sent to ' +  queuedTrgt + ': "' + queuedMsg + '"')
-        let score = totalLength + 20
-        let cooldownTime = Math.round(score / 25) + 1 // Add 1 second of leniancy 
-        let cooldownTicks = cooldownTime * 20
-        goalAge = bot.time.bigAge + BigInt(cooldownTicks)
         console.log('---')
-      }
+        let totalLength = queuedTrgt.length + queuedMsg.length + 6  // 6 compensates for spaces and the /msg
+        let score = totalLength + 20                               // DF sets score by adding score + length + 20 but we remove score here
+        let cooldownTime = Math.round(score / 25) + 1             // DF reduces score by 25 a second, so we calculate the amount of seconds and add a second to be generous
+        let cooldownTicks = cooldownTime * 20                    // Convert the time in seconds to time in ticks
+        goalAge = bot.time.bigAge + BigInt(cooldownTicks)       // Set the goal x ticks ahead in the future
+      }                                                        // thank you df very cool
     }
   }
   queueRunning = false
 }
+
+exports.respond = respond;
+
+//------------------------ Utility ------------------------//
+
+let timestamp
+
+const sleep = function (ms) {return new Promise(resolve => setTimeout(resolve, ms))}
 
 const updateTimestamp = function () {
   let today = new Date();
@@ -156,5 +150,4 @@ async function cornerWalk() {
 }
 
 exports.sleep = sleep;
-exports.respond = respond;
 exports.updateTimestamp = updateTimestamp;
