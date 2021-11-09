@@ -99,11 +99,7 @@ const sleep = function (ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-<<<<<<< HEAD
 //Queues up responses
-=======
-//Queues up responses, and operates every ~3 seconds.
->>>>>>> 01247e426ac006bd4aa2e662ccd3c7483d03c267
 const respond = async function (target, message) {
   updateTimestamp()
   console.log(timestamp + 'Message queued for ' + target)
