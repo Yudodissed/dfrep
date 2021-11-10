@@ -2,13 +2,16 @@
 const main = require('../main')
 const db = require('../db')
 
+let letterStorage = {}
+
 module.exports = {
   
   callsign: "letter",
   syntax: "/letter <user> <message>",
   description: "Sends a letter to the inbox of a player that can be read later. Afterwards, running /letter confirm is required.",
-  permission: "trusted",
-  cooldown: 0,
+  permission: 1, // Registered users only
+  cooldown: 6000, // 5 minutes
+  trusted_cooldown: 1200, // 1 minute
 
   run: function (sender, args) {
     if (args[1] === "confirm") {
@@ -23,6 +26,7 @@ module.exports = {
                   let timestamp = main.updateTimestamp()
                   console.log(timestamp + 'Message sent from ' + sender + ' to ' + victim)
                   main.respond(sender, '[✔]: Letter sent to ' + victim + '!')
+                  main.cmdCooldown(sender, "letter")
               } else {
                   let timestamp = main.updateTimestamp()
                   console.log(timestamp + 'Message failed for ' + sender + ' to ' + victim + ". Their mailbox is full!")

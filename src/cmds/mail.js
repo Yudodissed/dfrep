@@ -7,8 +7,9 @@ module.exports = {
   callsign: "mail",
   syntax: "/mail [del] [index]",
   description: "If no argument is given, lists basic information about inbox. If index argument is given, reads the message at index. If delete argument is given, deleted the message.",
-  permission: "registered",
+  permission: 1, // Registered users only
   cooldown: 0,
+  trusted_cooldown: 0,
 
   run: function (sender, args) {
     if (args.length === 1) {
@@ -18,6 +19,7 @@ module.exports = {
             let tidy = "messages"
             if (Object.keys(data).length === 2) {tidy = "message"}
             main.respond(sender, `[✉] You have (${--Object.keys(data).length}) ${tidy}.`)
+            main.cmdCooldown(sender, "mail")
         })
     } else {
         if (args[1] === "del") {
@@ -35,6 +37,7 @@ module.exports = {
                             let timestamp = main.updateTimestamp()
                             console.log(timestamp + 'Letter deleted by ' + sender)
                             main.respond(sender, '[✔]: Letter deleted!')
+                            main.cmdCooldown()
                         } else {
                             let timestamp = main.updateTimestamp()
                             console.log(timestamp + 'Out of bound index from ' + sender)
@@ -55,7 +58,8 @@ module.exports = {
                   let indexID = Object.keys(data)[--index]
                   let message = data[indexID]["message"]
                   let origin = data[indexID]["sender"]
-                  main.respond(sender, `(${++index}) [✉ ${origin}]: ${message}`)                
+                  main.respond(sender, `(${++index}) [✉ ${origin}]: ${message}`)
+                  main.cmdCooldown(sender, "mail")
               }
           })
         }

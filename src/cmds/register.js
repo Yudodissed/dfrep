@@ -7,8 +7,9 @@ module.exports = {
   callsign: "register",
   syntax: "/register",
   description: "Registers you in the database. Is required for most commands.",
-  permission: "none",
+  permission: 0, // Anyone can run
   cooldown: 0,
+  trusted_cooldown: 0,
 
   run: function (sender, args) {
       db.readData(sender).then(data => {
@@ -18,6 +19,7 @@ module.exports = {
                       let timestamp = main.updateTimestamp()
                       console.log(timestamp+`${sender} has registered!`)
                       main.respond(sender, "[✔]: You've been registered! Welcome to dfrep! Try out /msg dfrep help for more.")
+                      main.cmdCooldown(sender, "register")
                   }
               })
           } else {

@@ -8,9 +8,10 @@ module.exports = {
   
   callsign: "-rep",
   syntax: "/-rep <user> [build|dev]",
-  description: "Decreases a players reputation score. Not providing a category will decrease a players generic reputation. Providing a category will decrease their rep of that type.",
-  permission: "registered",
-  cooldown: 0,
+  description: "Decreases a players reputation score. No category will affect generic reputation.",
+  permission: 1, // Registered users only
+  cooldown: 1200, // 1 minute
+  trusted_cooldown: 600, // 30 seconds
 
   run: function (sender, args) {
     let repType
@@ -47,6 +48,7 @@ module.exports = {
                     }
                     db.writeData(victim, newData)
                     main.respond(sender, '[✔]: /-rep completed. Do /msg dfrep profile ' + victim + ' to check!')
+                    main.cmdCooldown(sender, "-rep")
                 } else {
                     let timestamp = main.updateTimestamp()
                     console.log(timestamp + sender + ' failed -rep for ' + victim)

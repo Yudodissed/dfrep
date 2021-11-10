@@ -4,7 +4,7 @@
 
 <p align="center">
  <a>
-  <img src="https://img.shields.io/badge/Version-1.0.2-blueviolet" alt="Version 1.0.2">
+  <img src="https://img.shields.io/badge/Version-1.1.0-blueviolet" alt="Version 1.1.0">
  </a>
  <a href="https://www.gnu.org/licenses/gpl-3.0">
   <img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="GNU License">
@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  dfrep (all lowercase) is an in-game reputation bot for the Minecraft server DiamondFire. Mainly, dfrep is used by sending messages to the in-game bot to create a trust profile for users. In addition to this, some utility commands are added. dfrep is not officially affiliated with DiamondFire, but permission has been given by an admin for me to run this bot. This repository may be behind the codebase the bot is actually running on. (it probably is) <br> <br> If you're here from the bot, <a href="https://github.com/Yudodissed/dfrep/tree/main?readme=1#commands">click here for the command list.</a>
+  dfrep (all lowercase) is an in-game reputation bot for the Minecraft server DiamondFire. Mainly, dfrep is used by sending messages to the in-game bot to create a trust profile for users. In addition to this, some utility commands are added. dfrep is not officially affiliated with DiamondFire, but permission has been given by an admin for me to run this bot. This repository may be behind the codebase the bot is actually running on. (it probably is) <br>
 </p>
 
 <h3 align="center">
@@ -35,9 +35,14 @@ In this document, when the format ```/[command]``` is used, it is implied you ar
 </thead>
 <tbody>
   <tr>
-    <td>/help</td>
+    <td>/help [command]</td>
     <td>None</td>
-    <td>Lists all commands and provides direction to here.</td>
+    <td>Lists all commands. If argument is given, provides information on command.</td>
+  </tr>
+  <tr>
+    <td>/about</td>
+    <td>None</td>
+    <td>Gives some information about dfrep.</td>
   </tr>
   <tr>
     <td>/register</td>
@@ -46,42 +51,42 @@ In this document, when the format ```/[command]``` is used, it is implied you ar
   </tr>
   <tr>
     <td>/profile [user]</td>
-    <td>Registration</td>
+    <td>Registered</td>
     <td>Provides reputation scores, amount of ratings, and the featured badge of a player. Giving no user will show your own profile.</td>
   </tr>
   <tr>
     <td>/+rep &lt;user&gt; [build|dev]</td>
-    <td>Registration</td>
+    <td>Registered</td>
     <td>Increases a players reputation score. Not providing a category will increase a players generic reputation. Providing a category will increase their rep of that type.</td>
   </tr>
   <tr>
     <td>/-rep &lt;user&gt; [build|dev]</td>
-    <td>Registration</td>
+    <td>Registered</td>
     <td>Decreases a players reputation score. Not providing a category will decrease a players generic reputation. Providing a category will decrease their rep of that type.</td>
   </tr>
   <tr>
     <td>/unrep &lt;user&gt;</td>
-    <td>Registration</td>
+    <td>Registered</td>
     <td>Undoes a +rep or -rep you've given a player.</td>
   </tr>
   <tr>
     <td>/mail [index]</td>
-    <td>Registration</td>
+    <td>Registered</td>
     <td>If no argument is given, lists basic information about inbox. If argument is given, reads the message at index.</td>
   </tr>
   <tr>
     <td>/mail del &lt;index&gt;</td>
-    <td>Registration</td>
+    <td>Registered</td>
     <td>Deletes a letter from your inbox.</td>
   </tr>
   <tr>
     <td>/letter &lt;user&gt; &lt;message&gt;</td>
-    <td>Trusted User</td>
+    <td>Registered</td>
     <td>Sends a letter to the inbox of a player that can be read later. Afterwards, running /letter confirm is required.</td>
   </tr>
   <tr>
     <td>/letter confirm</td>
-    <td>Trusted User</td>
+    <td>Registered</td>
     <td>Confirms the sending of a message to a players inbox that can be read later.</td>
   </tr>
 </tbody>
@@ -98,8 +103,7 @@ In this document, when the format ```/[command]``` is used, it is implied you ar
 
 ## What does "Trusted User" mean?
   A trusted user is someone who has proven themselves to be responsible and reputable. This is represented by a badge on their profile. As a trusted user,
-  they can use some commands others can't, and have a reduced cooldown on some commands. This badge can currently be earned by gaining at least 5 total karma.
-  This requirement will increase as the userbase does.
+  they can use some commands others can't, and have a reduced cooldown on some commands. This badge can not yet currently be earned, as the badge system is not yet implemented.
   
 ## How can I report a bug?
   Use the issues section on this Github!

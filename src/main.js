@@ -3,6 +3,7 @@ const mineflayer = require('mineflayer')
 const fs = require('fs')
 const mysql = require('mysql')
 const db = require('./db')
+const { mainModule } = require('process')
 
 //const restrictedCommands = ['quickrep', '+rep', '-rep'] //cmds that require registration   // disabled due to rework
 const admin = ['Yudodiss']
@@ -41,7 +42,10 @@ bot.on('kicked', kickreason => {updateTimestamp(); console.log(timestamp + kickr
 //------------------------ Executor ------------------------//
 //Detects, formats, filters, then directs requests
 
+const permissionLevels = ['unregistered', 'registered', 'trusted', 'admin']
+
 let cmdMap = new Map()
+let cooldowns = {}
 
 fs.readdir('./src/cmds', function(err, files) {
   if (err) throw err
@@ -72,16 +76,48 @@ bot.on('chat', (username, message, translate, jsonMsg) => {
     }
     let command = args[0]
     if (cmdMap.has(command)) {
-      let cmd = cmdMap.get(command)
-      updateTimestamp()
-      console.log(timestamp + `/${command} from ${sender} ["/${message}"]`)
-      cmd.run(sender, args)
+      let playerPermission
+      db.readData(sender).then(data => {
+        if (typeof data === "object") playerPermission = 1
+        if (!(playerPermission)) playerPermission = 0
+        let cmd = cmdMap.get(command)
+        if (cmd.permission <= playerPermission) {
+          if (!(sender in cooldowns)) cooldowns[sender] = {}
+          let cooldownAgeGoal
+          if (command in cooldowns[sender]) {cooldownAgeGoal = BigInt(cooldowns[sender][command])} else cooldownAgeGoal = BigInt(0)
+          if (bot.time.bigAge >= cooldownAgeGoal) {
+            updateTimestamp()
+            console.log(timestamp + `/${command} from ${sender} ["/${message}"]`)
+            cmd.run(sender, args)
+          } else {
+            updateTimestamp()
+            console.log(timestamp + 'Command failed due to cooldown by ' + sender + ' ["/' + message +'"]')
+            respond(sender, '[❌]: This command is on cooldown!')
+          }
+        } else {
+          updateTimestamp()
+          console.log(timestamp + 'Invalid command from ' + sender + ' ["/' + message +'"]')
+          respond(sender, `[❌]: You must be ${permissionLevels[cmd.permission]} to use that command!`)
+        }
+      })
     } else {
+      updateTimestamp()
       console.log(timestamp + 'Invalid command from ' + sender + ' ["/' + message +'"]')
-      respond(sender, 'Invalid command. Try /msg dfrep help for help!')
+      respond(sender, '[❌]: Invalid command. Try /msg dfrep help for commands! (If this is your first time, try /msg dfrep info)')
     }
   }
 })
+
+function cmdCooldown(sender, command) {
+  db.readData(sender).then(data => {
+    if (typeof data === "object") playerPermission = 1
+    if (!(playerPermission)) playerPermission = 0
+    let cmd = cmdMap.get(command)
+    let cooldownTicks = cmd.cooldown
+    if (playerPermission >= 2) cooldownTicks = cmd.trusted_cooldown
+    cooldowns[sender][command] = bot.time.bigAge + BigInt(cooldownTicks)
+  })
+}
 
 //----------------------- Message Queue -----------------------//
 
@@ -112,8 +148,8 @@ const respond = async function (target, message) {
         console.log(timestamp + 'Message sent to ' +  queuedTrgt + ': "' + queuedMsg + '"')
         console.log('---')
         let totalLength = queuedTrgt.length + queuedMsg.length + 6  // 6 compensates for spaces and the /msg
-        let score = totalLength + 20                               // DF sets score by adding score + length + 20 but we remove score here
-        let cooldownTime = Math.round(score / 25) + 1             // DF reduces score by 25 a second, so we calculate the amount of seconds and add a second to be generous
+        let score = (totalLength + 2) * 1.4                        // DF sets score by adding score + length + 20 but we remove score here
+        let cooldownTime = Math.round(score / 25)                 // DF reduces score by 25 a second, so we calculate the amount of seconds
         let cooldownTicks = cooldownTime * 20                    // Convert the time in seconds to time in ticks
         goalAge = bot.time.bigAge + BigInt(cooldownTicks)       // Set the goal x ticks ahead in the future
       }                                                        // thank you df very cool
@@ -151,3 +187,4 @@ async function cornerWalk() {
 
 exports.sleep = sleep;
 exports.updateTimestamp = updateTimestamp;
+exports.cmdCooldown = cmdCooldown;

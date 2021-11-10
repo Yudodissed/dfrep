@@ -9,8 +9,9 @@ module.exports = {
   callsign: "unrep",
   syntax: "/unrep <user>",
   description: "Undoes a +rep or -rep you've given a player.",
-  permission: "registered",
+  permission: 1, // Registered users only
   cooldown: 0,
+  trusted_cooldown: 0,
 
   run: function (sender, args) {
     let victim = args[1]
@@ -40,19 +41,8 @@ module.exports = {
                       newData[`reputation.ratings.${repType}`] = data['reputation']['ratings'][repType] + increment
                       newData[`statistics.ratedBy.${sender}`] = undefined
                       db.writeData(victim, newData)
-                      /*objectPath.set(data, `reputation.ratings.${repType}`, data['reputation']['ratings'][repType] + increment)
-                      objectPath.set(data, `statistics.ratedBy.${sender}`, undefined)
-                      data.reputation.ratings.karma = data.reputation.ratings.buildRating + 
-                                                      data.reputation.ratings.devRating + 
-                                                      data.reputation.ratings.friendlyRating
-                      let stringyData = JSON.stringify(data)
-                      let sql = `UPDATE maindb SET data = '${stringyData}' WHERE user = "${victim}"`
-                      con.query(sql, (error, results) => {
-                          if (error) {
-                            return console.error(error.message)
-                          }
-                      })*/
                       main.respond(sender, '[✔]: /unrep completed. Do /msg dfrep profile ' + victim + ' to check!')
+                      main.cmdCooldown(sender, "unrep")
                   }
               })
           } else {
