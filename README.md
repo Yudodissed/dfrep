@@ -40,7 +40,7 @@ In this document, when the format ```/[command]``` is used, it is implied you ar
     <td>Lists all commands. If argument is given, provides information on command.</td>
   </tr>
   <tr>
-    <td>/about</td>
+    <td>/info</td>
     <td>None</td>
     <td>Gives some information about dfrep.</td>
   </tr>
