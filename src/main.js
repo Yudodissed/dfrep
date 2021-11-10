@@ -7,7 +7,7 @@ const { mainModule } = require('process')
 
 //const restrictedCommands = ['quickrep', '+rep', '-rep'] //cmds that require registration   // disabled due to rework
 const admin = ['Yudodiss']
-const whitelist = ['Yudodiss', 'Mr_Dumpling','Proxxa', 'The_Slimy_Knight'] //comment out to disable whitelist and enable blacklist
+//const whitelist = ['Yudodiss', 'Mr_Dumpling','Proxxa', 'The_Slimy_Knight'] //comment out to disable whitelist and enable blacklist
 const blacklist = []
 
 let mcUser
