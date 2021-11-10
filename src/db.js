@@ -57,7 +57,6 @@ const readData = function (player) {
         reject(error)
       }
       //Gets a list of all registered players
-      results=JSON.parse(JSON.stringify(results))
       results.forEach((element, i) => { let user = results[i]['user']; results[i] = user })
       if (results.includes(player)) {
         state = true
