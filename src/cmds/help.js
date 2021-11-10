@@ -32,6 +32,10 @@ module.exports = {
         let timestamp = main.updateTimestamp()
         console.log(timestamp + '/help used to list commands for ' + sender)
         main.respond(sender, `[ℹ]: ${cmd.syntax} | Info: ${cmd.description}`)
+      } else {
+        let timestamp = main.updateTimestamp()
+        console.log(timestamp + "Invalid /help command from " + sender)
+        main.respond(sender, "[❌]: That's not a command!")
       }
     } else {
       let commandList = Array.from(cmdMap.keys())
