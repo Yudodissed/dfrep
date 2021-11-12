@@ -12,6 +12,8 @@ module.exports = {
   trusted_cooldown: 0,
 
   run: function (sender, args) {
-    main.respond(sender, "[ℹ]: dfrep ver. 1.1.0 | First time? Check out our github! [github.cοm/Yudodissed/dfrep]")
+    db.countUser().then(userCount => {
+      main.respond(sender, `[ℹ]: dfrep ver. 1.1.0 | ${userCount} users | First time? Check out our github! [github.cοm/Yudodissed/dfrep]`)  
+    })
   }
 }

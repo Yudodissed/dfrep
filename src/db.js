@@ -215,6 +215,22 @@ const readInbox = function (player) {
 
 exports.readInbox = readInbox
 
+//-------------------------- Count User --------------------------//
+
+const countUser = function () {
+  return new Promise ((resolve, reject) => {
+    sql = "SELECT count(*) FROM maindb"
+    con.query(sql, (error, results) => {
+      if (error) {
+        reject(error)
+      }
+      resolve(results[0]["count(*)"])
+    })
+  })
+}
+
+exports.countUser = countUser
+
 /*----Handle Haiku----//
     handleDisconnect
  important yet forgotten

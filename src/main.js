@@ -4,6 +4,7 @@ const fs = require('fs')
 const mysql = require('mysql')
 const db = require('./db')
 const { mainModule } = require('process')
+const { Console } = require('console')
 
 //const restrictedCommands = ['quickrep', '+rep', '-rep'] //cmds that require registration   // disabled due to rework
 const admin = ['Yudodiss']
@@ -39,8 +40,14 @@ bot.on('spawn', () => {cornerWalk()})
 bot.on('error', error => {updateTimestamp(); console.log(timestamp + error)})
 bot.on('kicked', kickreason => {updateTimestamp(); console.log(timestamp + kickreason)})
 
+//------------------------ Age Loop ------------------------//
+
+var botAge = 0
+setInterval(function(){
+  ++botAge
+}, 50)
+
 //------------------------ Executor ------------------------//
-//Detects, formats, filters, then directs requests
 
 const permissionLevels = ['unregistered', 'registered', 'trusted', 'admin']
 
@@ -84,15 +91,20 @@ bot.on('chat', (username, message, translate, jsonMsg) => {
         if (cmd.permission <= playerPermission) {
           if (!(sender in cooldowns)) cooldowns[sender] = {}
           let cooldownAgeGoal
-          if (command in cooldowns[sender]) {cooldownAgeGoal = BigInt(cooldowns[sender][command])} else cooldownAgeGoal = BigInt(0)
-          if (bot.time.bigAge >= cooldownAgeGoal) {
+          if (command in cooldowns[sender]) {cooldownAgeGoal = cooldowns[sender][command]} else cooldownAgeGoal = 0
+          if (botAge >= cooldownAgeGoal) {
             updateTimestamp()
             console.log(timestamp + `/${command} from ${sender} ["/${message}"]`)
             cmd.run(sender, args)
           } else {
+            let total = Math.floor((cooldownAgeGoal - botAge) / 20)
+            let minutes = Math.floor(total / 60)
+            let seconds = total % 60
+            if (seconds.toString().length === 1) seconds = "0" + seconds.toString()
+            let time = minutes.toString() + ":" + seconds.toString()
             updateTimestamp()
             console.log(timestamp + 'Command failed due to cooldown by ' + sender + ' ["/' + message +'"]')
-            respond(sender, '[❌]: This command is on cooldown!')
+            respond(sender, `[❌]: This command is on cooldown! ${time} left.`)
           }
         } else {
           updateTimestamp()
@@ -108,14 +120,14 @@ bot.on('chat', (username, message, translate, jsonMsg) => {
   }
 })
 
-function cmdCooldown(sender, command) {
+const cmdCooldown = function cmdCooldown(sender, command) {
   db.readData(sender).then(data => {
     if (typeof data === "object") playerPermission = 1
     if (!(playerPermission)) playerPermission = 0
     let cmd = cmdMap.get(command)
     let cooldownTicks = cmd.cooldown
     if (playerPermission >= 2) cooldownTicks = cmd.trusted_cooldown
-    cooldowns[sender][command] = bot.time.bigAge + BigInt(cooldownTicks)
+    cooldowns[sender][command] = botAge + cooldownTicks
   })
 }
 
@@ -123,13 +135,22 @@ function cmdCooldown(sender, command) {
 
 let dic = {}
 let queue = []
+let reqCount = {}
 let queueRunning = false
-let goalAge = bot.time.bigAge
+let goalAge = 140 // initial delay to compensate for anti-spam on join
 let queueID = 0
 
 const respond = async function (target, message) {
+  if (target in reqCount) {
+    if (reqCount[target] > 1) {
+      updateTimestamp()
+      console.log(timestamp + 'Message cancelled for ' + target)
+      return
+    }
+  } else reqCount[target] = 0
   updateTimestamp()
   console.log(timestamp + 'Message queued for ' + target)
+  ++reqCount[target]
   ++queueID
   dic[queueID] = [target, message]
   queue.push(queueID)
@@ -139,10 +160,12 @@ const respond = async function (target, message) {
       let id = queue[0]
       let queuedTrgt = dic[id][0]
       let queuedMsg = dic[id][1]
-      await sleep(100)
-      if (bot.time.bigAge >= goalAge) {
+      await sleep(50)
+      if (botAge >= goalAge) {
         removedTrgt = queue.shift()
         delete dic[id]
+        --reqCount[queuedTrgt]
+        console.log(reqCount[queuedTrgt])
         bot.chat('/msg ' + queuedTrgt + ' ' + queuedMsg)
         updateTimestamp()
         console.log(timestamp + 'Message sent to ' +  queuedTrgt + ': "' + queuedMsg + '"')
@@ -151,7 +174,7 @@ const respond = async function (target, message) {
         let score = (totalLength + 2) * 1.4                        // DF sets score by adding score + length + 20 but we remove score here
         let cooldownTime = Math.round(score / 25)                 // DF reduces score by 25 a second, so we calculate the amount of seconds
         let cooldownTicks = cooldownTime * 20                    // Convert the time in seconds to time in ticks
-        goalAge = bot.time.bigAge + BigInt(cooldownTicks)       // Set the goal x ticks ahead in the future
+        goalAge = botAge + cooldownTicks                        // Set the goal x ticks ahead in the future
       }                                                        // thank you df very cool
     }
   }
