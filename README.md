@@ -4,7 +4,7 @@
 
 <p align="center">
  <a>
-  <img src="https://img.shields.io/badge/Version-1.1.0-blueviolet" alt="Version 1.1.0">
+  <img src="https://img.shields.io/badge/Version-1.1.1-blueviolet" alt="Version 1.1.1">
  </a>
  <a href="https://www.gnu.org/licenses/gpl-3.0">
   <img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="GNU License">
