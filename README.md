@@ -70,7 +70,7 @@ In this document, when the format ```/[command]``` is used, it is implied you ar
     <td>Undoes a +rep or -rep you've given a player.</td>
   </tr>
   <tr>
-    <td>/mail &lt;del/clear/[index]&gt;</td>
+    <td>/mail [del/clear/[index]]</td>
     <td>Registered</td>
     <td>If no argument is given, lists basic information about inbox. If argument is given, reads the message at index.</td>
   </tr>
