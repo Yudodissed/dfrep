@@ -4,7 +4,7 @@
 
 <p align="center">
  <a>
-  <img src="https://img.shields.io/badge/Version-1.1.1-blueviolet" alt="Version 1.1.1">
+  <img src="https://img.shields.io/badge/Version-1.1.2-blueviolet" alt="Version 1.1.2">
  </a>
  <a href="https://www.gnu.org/licenses/gpl-3.0">
   <img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="GNU License">
@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  dfrep (all lowercase) is an in-game reputation bot for the Minecraft server DiamondFire. Mainly, dfrep is used by sending messages to the in-game bot to create a trust profile for users. In addition to this, some utility commands are added. dfrep is not officially affiliated with DiamondFire, but permission has been given by an admin for me to run this bot. This repository may be behind the codebase the bot is actually running on. (it probably is) <br>
+  dfrep (all lowercase) is an in-game reputation bot for the Minecraft server DiamondFire. Mainly, dfrep is used by sending messages to the in-game bot to create a trust profile for users. In addition to this, some utility commands are added. dfrep is not officially affiliated with DiamondFire, but permission has been given by an admin for me to run this bot.<br>
 </p>
 
 <h3 align="center">
@@ -55,12 +55,12 @@ In this document, when the format ```/[command]``` is used, it is implied you ar
     <td>Provides reputation scores, amount of ratings, and the featured badge of a player. Giving no user will show your own profile.</td>
   </tr>
   <tr>
-    <td>/+rep &lt;user&gt; [build|dev]</td>
+    <td>/+rep &lt;user&gt; [build/dev]</td>
     <td>Registered</td>
     <td>Increases a players reputation score. Not providing a category will increase a players generic reputation. Providing a category will increase their rep of that type.</td>
   </tr>
   <tr>
-    <td>/-rep &lt;user&gt; [build|dev]</td>
+    <td>/-rep &lt;user&gt; [build/dev]</td>
     <td>Registered</td>
     <td>Decreases a players reputation score. Not providing a category will decrease a players generic reputation. Providing a category will decrease their rep of that type.</td>
   </tr>
@@ -70,7 +70,7 @@ In this document, when the format ```/[command]``` is used, it is implied you ar
     <td>Undoes a +rep or -rep you've given a player.</td>
   </tr>
   <tr>
-    <td>/mail [index]</td>
+    <td>/mail &lt;del/clear/[index]&gt;</td>
     <td>Registered</td>
     <td>If no argument is given, lists basic information about inbox. If argument is given, reads the message at index.</td>
   </tr>

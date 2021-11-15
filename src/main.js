@@ -1,15 +1,12 @@
 
 const mineflayer = require('mineflayer')
-const fs = require('fs')
-const mysql = require('mysql')
 const db = require('./db')
-const { mainModule } = require('process')
-const { Console } = require('console')
+const fs = require('fs')
 
-//const restrictedCommands = ['quickrep', '+rep', '-rep'] //cmds that require registration   // disabled due to rework
 const admin = ['Yudodiss']
 //const whitelist = ['Yudodiss', 'Mr_Dumpling','Proxxa', 'The_Slimy_Knight'] //comment out to disable whitelist and enable blacklist
 const blacklist = []
+const skipNotify = false
 
 let mcUser
 let mcPass
@@ -39,6 +36,26 @@ bot.on('login', () => {updateTimestamp(); console.log(timestamp + 'Connected!')}
 bot.on('spawn', () => {cornerWalk()})
 bot.on('error', error => {updateTimestamp(); console.log(timestamp + error)})
 bot.on('kicked', kickreason => {updateTimestamp(); console.log(timestamp + kickreason)})
+
+bot.on('playerJoined', (player) => {
+  if (skipNotify !== true) {
+    player = player["username"]
+    db.readData(player).then(profileData => {
+    db.readSettings(player).then(settingsData => {
+    db.readInbox(player).then(inboxData => {
+      let importantCount = 0, unreadCount = 0
+      Object.keys(inboxData).forEach(function(key) {
+        if (key.split('')[0] === "1") ++importantCount
+        if (key.split('')[0] === "2") ++unreadCount
+      })
+      if (profileData !== false && settingsData["msgNotify"] === true && importantCount + unreadCount >= 1) {
+        updateTimestamp()
+        console.log(timestamp + 'Inbox notification sent to ' + player)
+        respond(player, `[!]: Hey there! You have [${unreadCount + importantCount}] unread/important messages! (Use /mail to view them)`)
+      }
+    })})}) // Ignore it for the sake of compaction, readability be DAMNED
+  }
+})
 
 //------------------------ Age Loop ------------------------//
 
@@ -165,7 +182,6 @@ const respond = async function (target, message) {
         removedTrgt = queue.shift()
         delete dic[id]
         --reqCount[queuedTrgt]
-        console.log(reqCount[queuedTrgt])
         bot.chat('/msg ' + queuedTrgt + ' ' + queuedMsg)
         updateTimestamp()
         console.log(timestamp + 'Message sent to ' +  queuedTrgt + ': "' + queuedMsg + '"')

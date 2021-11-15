@@ -101,8 +101,7 @@ const writeData = function(user, inputData) {
                                         data.reputation.ratings.friendlyRating
     }
     let stringyData = JSON.stringify(data)
-    let sql = `UPDATE maindb SET data = '${stringyData}' WHERE user = "${user}"`
-    con.query(sql, (error, results) => {
+    con.query("UPDATE maindb SET data = ? WHERE user = ?", [stringyData, user], (error, results) => {
       if (error) {
         return console.error(error.message)
       }
@@ -116,8 +115,10 @@ exports.writeData = writeData
 // Refer to cmd.js /register
 
 const register = function (user) {
-  let starterData = fs.readFileSync('template_data.json')
-  let sql = `INSERT INTO maindb(user,data,inbox) VALUES ('${user}','${starterData}','{"msgID":0}')`
+  let starterData = fs.readFileSync('./base_data/template_data.json')
+  let inboxData = fs.readFileSync('./base_data/template_inbox.json')
+  let settingsData = fs.readFileSync('./base_data/template_settings.json')
+  let sql = `INSERT INTO maindb(user,data,inbox,settings) VALUES ('${user}','${starterData}','${inboxData}','${settingsData}')`
   return new Promise ((resolve, reject) => {
     con.query(sql, (error, results) => {
       if (error) {
@@ -135,7 +136,7 @@ exports.register = register
 // Puts a message in a users inbox column object. Uses
 // unique IDs from their object.
 
-const writeLetter = function (sender, victim, message) {
+const writeLetter = function (sender, victim, message, level) {
   let sql = "SELECT inbox FROM maindb WHERE user='" + victim + "'"
   return new Promise ((resolve, reject) => {
     con.query(sql, (error, results) => {
@@ -145,10 +146,10 @@ const writeLetter = function (sender, victim, message) {
       let data = JSON.parse(results[0]['inbox'])
       if (Object.keys(data).length < 100) {
         let msgID = ++data["msgID"]
-        data[msgID] = {"sender": sender, "message": message,}
+        let key = `${level}${msgID}` // level guarantees the order of messages. 0: Read, 1: Unread, 2: Important (Admin-only)
+        data[key] = {"sender": sender, "message": message,}
         let stringyData = JSON.stringify(data)
-        let sql = `UPDATE maindb SET inbox = '${stringyData}' WHERE user = "${victim}"`
-        con.query(sql, (error, results) => {
+        con.query("UPDATE maindb SET inbox = ? WHERE user = ?", [stringyData, victim], (error, results) => {
           if (error) {
             return console.error(error.message)
           }
@@ -183,8 +184,7 @@ const burnLetter = function (sender, index) {
         } else {
           delete data[indexID]
           let stringyData = JSON.stringify(data)
-          let sql = `UPDATE maindb SET inbox = '${stringyData}' WHERE user = "${sender}"`
-          con.query(sql, (error, results) => {
+          con.query("UPDATE maindb SET inbox = ? WHERE user = ?", [stringyData, sender], (error, results) => {
             if (error) {
               return console.error(error.message)
             }
@@ -217,19 +217,69 @@ exports.readInbox = readInbox
 
 //-------------------------- Count User --------------------------//
 
-const countUser = function () {
+const fetchUsers = function () {
   return new Promise ((resolve, reject) => {
-    sql = "SELECT count(*) FROM maindb"
+    sql = "SELECT user FROM maindb"
     con.query(sql, (error, results) => {
       if (error) {
         reject(error)
       }
-      resolve(results[0]["count(*)"])
+      let output = []
+      let i = 0
+      for (let [key, value] of Object.entries(results)) {
+        output[i] = value["user"]
+        ++i
+      }
+      resolve(output)
     })
   })
 }
 
-exports.countUser = countUser
+exports.fetchUsers = fetchUsers
+
+//------------------------- Read Settings -------------------------//
+
+const readSettings = function (player) {
+  return new Promise ((resolve, reject) => {
+    readData(player).then(data => {
+      if (data) {
+        sql = "SELECT settings FROM maindb WHERE user='" + player + "'"
+        con.query(sql, (error, results) => {
+          if (error) {
+            reject(error)
+          }
+          let data = JSON.parse(results[0]['settings'])
+          resolve(data)
+        })
+      }
+    })
+  })
+}
+
+exports.readSettings = readSettings
+
+//------------------------ Toggle Settings ------------------------//
+// inputData should be a list of the settings to toggle.
+
+const toggleSettings = function(user, inputData) {
+  return new Promise ((resolve, reject) => {
+    readSettings(user).then(data => {
+      console.log(data)
+      inputData.forEach((key) => {
+        data[key] = !data[key]
+      })
+      let stringyData = JSON.stringify(data)
+      con.query("UPDATE maindb SET settings = ? WHERE user = ?", [stringyData, user], (error, results) => {
+        if (error) {
+          reject(error)
+        }
+        resolve(data)
+      })
+    })
+  })
+}
+
+exports.toggleSettings = toggleSettings
 
 /*----Handle Haiku----//
     handleDisconnect

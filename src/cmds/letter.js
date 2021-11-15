@@ -16,50 +16,49 @@ module.exports = {
   run: function (sender, args) {
     if (args[1] === "confirm") {
       if (sender in letterStorage) {
-          let data = letterStorage[sender]
-          delete letterStorage[sender]
-          data = data.split(".")
-          let victim = data[0]
-          let message = data[1]
-          db.writeLetter(sender, victim, message).then(result => {
-              if (result === true) {
-                  let timestamp = main.updateTimestamp()
-                  console.log(timestamp + 'Message sent from ' + sender + ' to ' + victim)
-                  main.respond(sender, '[✔]: Letter sent to ' + victim + '!')
-                  main.cmdCooldown(sender, "letter")
-              } else {
-                  let timestamp = main.updateTimestamp()
-                  console.log(timestamp + 'Message failed for ' + sender + ' to ' + victim + ". Their mailbox is full!")
-                  main.respond(sender, '[❌]: ' + victim + 's mailbox is full!')
-              }
-          })
+        let data = letterStorage[sender]
+        delete letterStorage[sender]
+        let victim = data[0]
+        let message = data[1]
+        db.writeLetter(sender, victim, message, 2).then(result => {
+          if (result === true) {
+            let timestamp = main.updateTimestamp()
+            console.log(timestamp + 'Message sent from ' + sender + ' to ' + victim)
+            main.respond(sender, '[✔]: Letter sent to ' + victim + '!')
+            main.cmdCooldown(sender, "letter")
+          } else {
+            let timestamp = main.updateTimestamp()
+            console.log(timestamp + 'Message failed for ' + sender + ' to ' + victim + ". Their mailbox is full!")
+            main.respond(sender, '[❌]: ' + victim + 's mailbox is full!')
+          }
+        })
       } else {
-          let timestamp = main.updateTimestamp()
-          console.log(timestamp + 'No letter to confirm from ' + sender)
-          main.respond(sender, '[❌]: No letter to confirm!')
+        let timestamp = main.updateTimestamp()
+        console.log(timestamp + 'No letter to confirm from ' + sender)
+        main.respond(sender, '[❌]: No letter to confirm!')
       }
     } else {
-        let victim = args[1]
-        db.readData(victim).then(data => {
-            if (data !== false) {
-                let message = args.slice(2)
-                message = message.join(" ")
-                if (message.length <= 100) {
-                    letterStorage[`${sender}`] = victim + "." + message
-                    let timestamp = main.updateTimestamp()
-                    console.log(timestamp + 'Letter added to storage by ' + sender + ": " + '"' + message + '"')
-                    main.respond(sender, '[?]: Are you sure? /msg dfrep letter confirm.')
-                } else {
-                    let timestamp = main.updateTimestamp()
-                    console.log(timestamp + 'Too large a message recieved from ' + sender)
-                    main.respond(sender, '[❌]: Your letter can at most be 100 characters. Your message is ' + message.length + ' characters long.')
-                }
-            } else {
-                let timestamp = main.updateTimestamp()
-                console.log(timestamp + 'Invalid argument recieved from ' + sender)
-                main.respond(sender, '[❌]: Invalid user. Is that player registered? Do /msg dfrep help for more.')
-            }
-        })
+      let victim = args[1]
+      db.readData(victim).then(data => {
+        if (data !== false) {
+          let msgList = args.slice(2)
+          let message = escape(msgList.join(" "))
+          if (message.length <= 100) {
+            letterStorage[`${sender}`] = [victim, message]
+            let timestamp = main.updateTimestamp()
+            console.log(timestamp + 'Letter added to storage by ' + sender + ": " + '"' + message + '"')
+            main.respond(sender, '[?]: Are you sure? /msg dfrep letter confirm.')
+          } else {
+            let timestamp = main.updateTimestamp()
+            console.log(timestamp + 'Too large a message recieved from ' + sender)
+            main.respond(sender, '[❌]: Your letter can at most be 100 characters. Your message is ' + message.length + ' characters long.')
+          }
+        } else {
+          let timestamp = main.updateTimestamp()
+          console.log(timestamp + 'Invalid argument recieved from ' + sender)
+          main.respond(sender, '[❌]: Invalid user. Is that player registered? Do /msg dfrep help for more.')
+        }
+      })
     }
   }
 }
