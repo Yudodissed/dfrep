@@ -176,8 +176,6 @@ const burnLetter = function (sender, index) {
         return error
       }
       readInbox(sender).then(data => {
-        console.log("index:")
-        console.log(index)
         let indexID = Object.keys(data)[--index]
         if (indexID === "msgID") {
           resolve(false)

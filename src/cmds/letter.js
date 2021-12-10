@@ -47,7 +47,7 @@ module.exports = {
             letterStorage[`${sender}`] = [victim, message]
             let timestamp = main.updateTimestamp()
             console.log(timestamp + 'Letter added to storage by ' + sender + ": " + '"' + message + '"')
-            main.respond(sender, '[?]: Are you sure? /msg dfrep letter confirm.')
+            main.respond(sender, '[?]: Are you sure? There is a large cooldown for sending letters. /msg dfrep letter confirm.')
           } else {
             let timestamp = main.updateTimestamp()
             console.log(timestamp + 'Too large a message recieved from ' + sender)
