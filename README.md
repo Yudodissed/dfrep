@@ -70,14 +70,10 @@ In this document, when the format ```/[command]``` is used, it is implied you ar
     <td>Undoes a +rep or -rep you've given a player.</td>
   </tr>
   <tr>
-    <td>/mail &lt;del/clear/[index]&gt;</td>
+    <td>/mail [del &lt;index&gt;/clear [type]/&lt;index&gt;]</td>
     <td>Registered</td>
-    <td>If no argument is given, lists basic information about inbox. If argument is given, reads the message at index.</td>
-  </tr>
-  <tr>
-    <td>/mail del &lt;index&gt;</td>
-    <td>Registered</td>
-    <td>Deletes a letter from your inbox.</td>
+    <td>No argument lists all mail. Giving "del" will delete letter at index. Giving "clear" will remove all letters, or all of type if given. If just an index is given, that letter will be read.
+     </td>
   </tr>
   <tr>
     <td>/letter &lt;user&gt; &lt;message&gt;</td>
