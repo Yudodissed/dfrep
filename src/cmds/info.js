@@ -13,7 +13,7 @@ module.exports = {
 
   run: function (sender, args) {
     db.fetchUsers().then(users => {
-      main.respond(sender, `[ℹ]: dfrep ver. 1.1.0 | ${users.length} users | First time? Check out our github! [github.cοm/Yudodissed/dfrep]`)  
+      main.respond(sender, `[ℹ]: dfrep ver. 1.1.3 | ${users.length} users | First time? Check out our github! [github.cοm/Yudodissed/dfrep]`)  
     })
   }
 }

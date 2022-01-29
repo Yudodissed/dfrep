@@ -22,12 +22,10 @@ module.exports = {
         db.readInbox(sender).then(data => {
           let timestamp = main.updateTimestamp()
           console.log(timestamp + 'List of messages requested for ' + sender)
-          let importantCount = 0, unreadCount = 0, readCount = 0
-          Object.keys(data).forEach(function(key) {
-            if (key.split('')[0] === "1") ++importantCount
-            if (key.split('')[0] === "2") ++unreadCount
-            if (key.split('')[0] === "3") ++readCount
-          })
+          combinedData = data["important"].concat(data["unread"].concat(data["read"]))
+          let importantCount = data["important"].length
+          let unreadCount = data["unread"].length
+          let readCount = data["read"].length
           if (importantCount > 0) {
             if (importantCount > 1) {
               importantMsg = ` [1-${importantCount}]: Important `
@@ -49,14 +47,15 @@ module.exports = {
               readMsg = ` [${readCount + unreadCount + importantCount}]: Read `
             }
           } else readMsg = ''
-          if (Object.keys(data).length === 1) {main.respond(sender, `[✉] You have no mail. Why not send out some?`)} else {main.respond(sender, `[✉] You have (${--Object.keys(data).length}) messages | ${importantMsg} ${unreadMsg} ${readMsg} | Use /mail <index> to view a letter.`)}
+          if (combinedData.length === 0) {main.respond(sender, `[✉] You have no mail. Why not send out some?`)} else {main.respond(sender, `[✉] You have (${combinedData.length}) messages | ${importantMsg} ${unreadMsg} ${readMsg} | Use /mail <index> to view a letter.`)}
         })
       break;
 
       case "del":
         let index = parseInt(args[2], 10)
         db.readInbox(sender).then(data => {
-          let keyCount = --Object.keys(data).length
+          combinedData = data["important"].concat(data["unread"].concat(data["read"]))
+          let keyCount = Object.keys(combinedData).length
           if (index > keyCount) {
             let timestamp = main.updateTimestamp()
             console.log(timestamp + 'Out of bound index from ' + sender)
@@ -82,20 +81,21 @@ module.exports = {
         if (typeof parseInt(args[1]) === "number" && isNaN(parseInt(args[1])) === false) {
           let index = parseInt(args[1], 10)
           db.readInbox(sender).then(data => {
-            let keyCount = --Object.keys(data).length
+            combinedData = data["important"].concat(data["unread"].concat(data["read"]))
+            let keyCount = combinedData.length
             if (index > keyCount || index <= 0) {
               let timestamp = main.updateTimestamp()
               console.log(timestamp + 'Out of bound index from ' + sender + "|"+index)
               main.respond(sender, '[❌]: There is no message at that index.')
             } else {
-              let key = Object.keys(data)[--index]
-              let message = unescape(data[key]["message"])
-              let origin = data[key]["sender"]
+              let messageData = combinedData[--index]
+              let message = unescape(messageData["message"])
+              let origin = messageData["sender"]
               main.respond(sender, `(${++index}) [✉ ${origin}]: ${message}`)
               // If the letter is unread, then delete and replace with one marked as read
-              if (key.split('')[0] === "2") {
+              if (data["unread"].includes(messageData) === true) {
                 db.burnLetter(sender, index).then(result => {
-                  db.writeLetter(sender, origin, escape(message), 3)
+                  db.writeLetter(sender, origin, escape(message), "read")
                 })
               }
               /* Temporarily disabled; this seems to like causing problems :)

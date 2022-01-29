@@ -2,6 +2,7 @@ const mineflayer = require('mineflayer')
 const fs = require('fs')
 const mysql = require('mysql')
 const objectPath = require('object-path')
+const sortObj = require('sort-object')
 
 const main = require('./main')
 
@@ -133,8 +134,7 @@ const register = function (user) {
 exports.register = register
 
 //------------------------- Write Letter -------------------------//
-// Puts a message in a users inbox column object. Uses
-// unique IDs from their object.
+// you know what this does
 
 const writeLetter = function (sender, victim, message, level) {
   let sql = "SELECT inbox FROM maindb WHERE user='" + victim + "'"
@@ -144,10 +144,9 @@ const writeLetter = function (sender, victim, message, level) {
         return error
       }
       let data = JSON.parse(results[0]['inbox'])
-      if (Object.keys(data).length < 100) {
-        let msgID = ++data["msgID"]
-        let key = `${level}${msgID}` // level guarantees the order of messages. 0: Read, 1: Unread, 2: Important (Admin-only)
-        data[key] = {"sender": sender, "message": message,}
+      combinedData = data["important"].concat(data["unread"].concat(data["read"]))
+      if (Object.keys(combinedData).length < 100) {
+        data[level].push({"sender": sender, "message": message,})
         let stringyData = JSON.stringify(data)
         con.query("UPDATE maindb SET inbox = ? WHERE user = ?", [stringyData, victim], (error, results) => {
           if (error) {
@@ -176,19 +175,25 @@ const burnLetter = function (sender, index) {
         return error
       }
       readInbox(sender).then(data => {
-        let indexID = Object.keys(data)[--index]
-        if (indexID === "msgID") {
-          resolve(false)
-        } else {
-          delete data[indexID]
-          let stringyData = JSON.stringify(data)
-          con.query("UPDATE maindb SET inbox = ? WHERE user = ?", [stringyData, sender], (error, results) => {
-            if (error) {
-              return console.error(error.message)
-            }
-            resolve(true)
-          })
-        }
+        let algoIndex = index
+        let algoResult
+        if (algoIndex > data["important"].length) {
+          algoIndex = algoIndex - data["important"].length
+          if (algoIndex > data["unread"].length) {
+            algoIndex = algoIndex - data["unread"].length
+            if (algoIndex > data["read"].length) {
+              algoIndex = algoIndex - data["read"].length
+            } else {algoResult = "read"}
+          } else {algoResult = "unread"}
+        } else {algoResult = "important"}
+        data[algoResult].splice(--algoIndex, 1)
+        let stringyData = JSON.stringify(data)
+        con.query("UPDATE maindb SET inbox = ? WHERE user = ?", [stringyData, sender], (error, results) => {
+          if (error) {
+            return console.error(error.message)
+          }
+          resolve(true)
+        })
       })
     })
   })

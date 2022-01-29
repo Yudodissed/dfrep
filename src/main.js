@@ -4,7 +4,7 @@ const db = require('./db')
 const fs = require('fs')
 
 const admin = ['Yudodiss']
-//const whitelist = ['Yudodiss', 'Mr_Dumpling','Proxxa', 'The_Slimy_Knight'] //comment out to disable whitelist and enable blacklist
+//const whitelist = ['Yudodiss'] //comment out to disable whitelist and enable blacklist
 const blacklist = []
 const skipNotify = false
 
@@ -43,15 +43,11 @@ bot.on('playerJoined', (player) => {
     db.readData(player).then(profileData => {
     db.readSettings(player).then(settingsData => {
     db.readInbox(player).then(inboxData => {
-      let importantCount = 0, unreadCount = 0
-      Object.keys(inboxData).forEach(function(key) {
-        if (key.split('')[0] === "1") ++importantCount
-        if (key.split('')[0] === "2") ++unreadCount
-      })
-      if (profileData !== false && settingsData["msgNotify"] === true && importantCount + unreadCount >= 1) {
+      let unreadCount = inboxData["unread"].length
+      if (profileData !== false && settingsData["msgNotify"] === true && unreadCount >= 1) {
         updateTimestamp()
         console.log(timestamp + 'Inbox notification sent to ' + player)
-        respond(player, `[!]: Hey there! You have [${unreadCount + importantCount}] unread/important messages! (Use /mail to view them)`)
+        respond(player, `[!]: Hey there! You have [${unreadCount}] unread messages! (/msg dfrep mail)`)
       }
     })})}) // Ignore it for the sake of compaction, readability be DAMNED
   }

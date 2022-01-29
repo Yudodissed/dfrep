@@ -20,7 +20,7 @@ module.exports = {
         delete letterStorage[sender]
         let victim = data[0]
         let message = data[1]
-        db.writeLetter(sender, victim, message, 2).then(result => {
+        db.writeLetter(sender, victim, message, "unread").then(result => {
           if (result === true) {
             let timestamp = main.updateTimestamp()
             console.log(timestamp + 'Message sent from ' + sender + ' to ' + victim)

@@ -13,30 +13,26 @@ module.exports = {
 
   run: function (sender, args) {
     db.readInbox(sender).then(data => {
-      console.log(Object.keys(data))
-      Object.keys(data).forEach((key, i) => {
-        if (args[1] === "all") {
-          if (key.split('')[0] === "2") {
-            let index = i + 1
-            console.log(index)
-            db.burnLetter(sender, index)
-          }
-        }
-        if (key.split('')[0] === "3") {
-          let index = i + 1
-          console.log("i: "+i)
-          console.log("index: "+index)
-          db.burnLetter(sender, index)
-        }
-      })
       if (args[1] === "all") {
+        con.query("UPDATE maindb SET inbox = ? WHERE user = ?", ['{"important":[],"unread":[],"read":[]}', sender], (error, results) => {
+          if (error) {
+            return console.error(error.message)
+          }
+        })
         let timestamp = main.updateTimestamp()
         console.log(timestamp + 'Read/unread messages purged for ' + sender)
         main.respond(sender, '[✔]: All read + unread messages purged!')
       } else {
+        data["read"] = []
+        let stringyData = JSON.stringify(data)
+        con.query("UPDATE maindb SET inbox = ? WHERE user = ?", [stringyData, sender], (error, results) => {
+          if (error) {
+            return console.error(error.message)
+          }
+        })
         let timestamp = main.updateTimestamp()
-        console.log(timestamp + 'Unread messages purged for ' + sender)
-        main.respond(sender, '[✔]: All unread messages purged!')
+        console.log(timestamp + 'Read messages purged for ' + sender)
+        main.respond(sender, '[✔]: All read messages purged!')
       }
     })
   }
