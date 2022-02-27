@@ -1,8 +1,6 @@
 
 const main = require('../main')
-const db = require('../db')
-
-const objectPath = require('object-path')
+const userdata = require('../db/userdata')
 
 module.exports = {
   
@@ -28,7 +26,7 @@ module.exports = {
           return
         }
       } else repType = 'friendlyRating'
-      db.readData(victim).then(data => {
+      userdata.read(victim).then(data => {
         if (data !== false) {
           let validReq = false
           let undoType = "none"
@@ -46,7 +44,7 @@ module.exports = {
             if (undoType !== "none") {
               newData[`reputation.ratings.${undoType}`] = --data['reputation']['ratings'][undoType]
             }
-            db.writeData(victim, newData)
+            userdata.write(victim, newData)
             main.respond(sender, '[✔]: /-rep completed. Do /msg dfrep profile ' + victim + ' to check!')
             main.cmdCooldown(sender, "-rep")
           } else {

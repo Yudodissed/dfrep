@@ -4,7 +4,7 @@
 
 <p align="center">
  <a>
-  <img src="https://img.shields.io/badge/Version-1.1.3-blueviolet" alt="Version 1.1.3">
+  <img src="https://img.shields.io/badge/Version-1.1.4-blueviolet" alt="Version 1.1.4">
  </a>
  <a href="https://www.gnu.org/licenses/gpl-3.0">
   <img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="GNU License">
@@ -81,9 +81,14 @@ In this document, when the format ```/[command]``` is used, it is implied you ar
     <td>Sends a letter to the inbox of a player that can be read later. Afterwards, running /letter confirm is required.</td>
   </tr>
   <tr>
-    <td>/letter confirm</td>
+    <td>/purge [all]</td>
     <td>Registered</td>
-    <td>Confirms the sending of a message to a players inbox that can be read later.</td>
+    <td>Purges all read messages. Adding "all" will also delete all unread messages.</td>
+  </tr>
+  <tr>
+    <td>/notify</td>
+    <td>Registered</td>
+    <td>Toggles notifications for when you have an unread message in your inbox.</td>
   </tr>
 </tbody>
 </table>

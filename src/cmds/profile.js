@@ -1,6 +1,6 @@
 
 const main = require('../main')
-const db = require('../db')
+const userdata = require('../db/userdata')
 
 //------------------------ /profile ------------------------//
 //Quickly gives an overview of a players data.
@@ -17,7 +17,7 @@ module.exports = {
   run: function (sender, args) {
     let victim = args[1]
     if (victim === undefined) victim = sender
-    db.readData(victim).then(data => {
+    userdata.read(victim).then(data => {
       if (data !== false) {false
         let displayBadge = data.badges.displayBadge
         if (displayBadge = "false") {

@@ -1,8 +1,6 @@
 
 const main = require('../main')
-const db = require('../db')
-
-const objectPath = require('object-path')
+const userdata = require('../db/userdata')
 
 module.exports = {
   
@@ -15,7 +13,7 @@ module.exports = {
 
   run: function (sender, args) {
     let victim = args[1]
-    db.readData(victim).then(data => {
+    userdata.read(victim).then(data => {
       let validReq
       if (sender !== victim) {
         if (data !== false) {
@@ -35,7 +33,7 @@ module.exports = {
             console.log(timestamp + sender + 'failed unrep for' + victim)
             main.respond(sender, "[❌]: You haven't +/-repped this player!")
           }
-          db.readData(victim).then(data => {
+          userdata.read(victim).then(data => {
             if (validReq) {
               let newData = {}
               newData[`reputation.ratings.${repType}`] = data['reputation']['ratings'][repType] + increment

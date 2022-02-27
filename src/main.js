@@ -1,16 +1,21 @@
 
-const mineflayer = require('mineflayer')
-const db = require('./db')
 const fs = require('fs')
+const mineflayer = require('mineflayer')
+
+const mail = require('./db/mail')
+const userdata = require('./db/userdata')
+const settings = require('./db/settings')
 
 const admin = ['Yudodiss']
 //const whitelist = ['Yudodiss'] //comment out to disable whitelist and enable blacklist
 const blacklist = []
 const skipNotify = false
 
+// Gets the appropriate information.
+// If hosted remotely, get login details from the service.
+// If hosted locally, use a login.json.
 let mcUser
 let mcPass
-
 if (fs.existsSync('src/login/login.json')) {
   let rawLogin = fs.readFileSync('src/login/login.json')
   let loginJSON = JSON.parse(rawLogin)
@@ -21,6 +26,7 @@ if (fs.existsSync('src/login/login.json')) {
   mcPass = process.env.MC_PASS
 }
 
+// Create the bot
 const bot = mineflayer.createBot({
   host: 'mcdiamondfire.com',
   username: mcUser,
@@ -37,19 +43,20 @@ bot.on('spawn', () => {cornerWalk()})
 bot.on('error', error => {updateTimestamp(); console.log(timestamp + error)})
 bot.on('kicked', kickreason => {updateTimestamp(); console.log(timestamp + kickreason)})
 
+// Notify people with mail when they log in
 bot.on('playerJoined', (player) => {
   if (skipNotify !== true) {
     player = player["username"]
-    db.readData(player).then(profileData => {
-    db.readSettings(player).then(settingsData => {
-    db.readInbox(player).then(inboxData => {
+    userdata.read(player).then(profileData => {
+    settings.read(player).then(settingsData => {
+    mail.readInbox(player).then(inboxData => {
       let unreadCount = inboxData["unread"].length
       if (profileData !== false && settingsData["msgNotify"] === true && unreadCount >= 1) {
         updateTimestamp()
         console.log(timestamp + 'Inbox notification sent to ' + player)
         respond(player, `[!]: Hey there! You have [${unreadCount}] unread messages! (/msg dfrep mail)`)
       }
-    })})}) // Ignore it for the sake of compaction, readability be DAMNED
+    })})})
   }
 })
 
@@ -64,9 +71,8 @@ setInterval(function(){
 
 const permissionLevels = ['unregistered', 'registered', 'trusted', 'admin']
 
+// Initializes all command files to be required
 let cmdMap = new Map()
-let cooldowns = {}
-
 fs.readdir('./src/cmds', function(err, files) {
   if (err) throw err
   files.forEach(function(filename) {
@@ -76,7 +82,10 @@ fs.readdir('./src/cmds', function(err, files) {
   })
 })
 
+let cooldowns = {}
 bot.on('chat', (username, message, translate, jsonMsg) => {
+
+  // Filter out and verify it's a command
   if (username === bot.username) return
   if (username === 'You') {
     let sender = jsonMsg['extra'][1]['text']
@@ -94,10 +103,12 @@ bot.on('chat', (username, message, translate, jsonMsg) => {
         return
       }
     }
+
+    //Determine if they are able to run the command
     let command = args[0]
     if (cmdMap.has(command)) {
       let playerPermission
-      db.readData(sender).then(data => {
+      userdata.read(sender).then(data => {
         if (typeof data === "object") playerPermission = 1
         if (!(playerPermission)) playerPermission = 0
         let cmd = cmdMap.get(command)
@@ -106,10 +117,15 @@ bot.on('chat', (username, message, translate, jsonMsg) => {
           let cooldownAgeGoal
           if (command in cooldowns[sender]) {cooldownAgeGoal = cooldowns[sender][command]} else cooldownAgeGoal = 0
           if (botAge >= cooldownAgeGoal) {
+
+            // Run the command and log it
             updateTimestamp()
             console.log(timestamp + `/${command} from ${sender} ["/${message}"]`)
             cmd.run(sender, args)
+
           } else {
+
+            // Let the player know they can't run the command
             let total = Math.floor((cooldownAgeGoal - botAge) / 20)
             let minutes = Math.floor(total / 60)
             let seconds = total % 60
@@ -133,8 +149,9 @@ bot.on('chat', (username, message, translate, jsonMsg) => {
   }
 })
 
+// as the name implies
 const cmdCooldown = function cmdCooldown(sender, command) {
-  db.readData(sender).then(data => {
+  userdata.read(sender).then(data => {
     if (typeof data === "object") playerPermission = 1
     if (!(playerPermission)) playerPermission = 0
     let cmd = cmdMap.get(command)
@@ -154,6 +171,8 @@ let goalAge = 140 // initial delay to compensate for anti-spam on join
 let queueID = 0
 
 const respond = async function (target, message) {
+
+  // Check if they're already waiting for a message
   if (target in reqCount) {
     if (reqCount[target] > 1) {
       updateTimestamp()
@@ -161,12 +180,16 @@ const respond = async function (target, message) {
       return
     }
   } else reqCount[target] = 0
+
+  // Add the player to the queue
   updateTimestamp()
   console.log(timestamp + 'Message queued for ' + target)
   ++reqCount[target]
   ++queueID
   dic[queueID] = [target, message]
   queue.push(queueID)
+
+  // Begin the queue
   if (queueRunning === false) {
     queueRunning = true
     while (queue.length > 0) {
@@ -174,6 +197,8 @@ const respond = async function (target, message) {
       let queuedTrgt = dic[id][0]
       let queuedMsg = dic[id][1]
       await sleep(50)
+
+      // Move the queue along when the age has met the goal
       if (botAge >= goalAge) {
         removedTrgt = queue.shift()
         delete dic[id]
@@ -182,6 +207,8 @@ const respond = async function (target, message) {
         updateTimestamp()
         console.log(timestamp + 'Message sent to ' +  queuedTrgt + ': "' + queuedMsg + '"')
         console.log('---')
+
+        // Set the goal age using the worlds wierdest cooldown calculations
         let totalLength = queuedTrgt.length + queuedMsg.length + 6  // 6 compensates for spaces and the /msg
         let score = (totalLength + 2) * 1.4                        // DF sets score by adding score + length + 20 but we remove score here
         let cooldownTime = Math.round(score / 25)                 // DF reduces score by 25 a second, so we calculate the amount of seconds
@@ -199,8 +226,10 @@ exports.respond = respond;
 
 let timestamp
 
+// zzz
 const sleep = function (ms) {return new Promise(resolve => setTimeout(resolve, ms))}
 
+// Replace in the future pls
 const updateTimestamp = function () {
   let today = new Date();
   let time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();

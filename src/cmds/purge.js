@@ -1,6 +1,6 @@
 
 const main = require('../main')
-const db = require('../db')
+const mail = require('../db/mail')
 
 module.exports = {
   
@@ -12,9 +12,12 @@ module.exports = {
   trusted_cooldown: 0,
 
   run: function (sender, args) {
-    db.readInbox(sender).then(data => {
+    mail.readInbox(sender).then(data => {
       if (args[1] === "all") {
-        con.query("UPDATE maindb SET inbox = ? WHERE user = ?", ['{"important":[],"unread":[],"read":[]}', sender], (error, results) => {
+        data["unread"] = []
+        data["read"] = []
+        let stringyData = JSON.stringify(data)
+        con.query("UPDATE maindb SET inbox = ? WHERE user = ?", [stringyData, sender], (error, results) => {
           if (error) {
             return console.error(error.message)
           }

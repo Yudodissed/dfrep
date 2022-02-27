@@ -1,6 +1,6 @@
 
 const main = require('../main')
-const db = require('../db')
+const userdata = require('../db/userdata')
 
 module.exports = {
   
@@ -12,9 +12,9 @@ module.exports = {
   trusted_cooldown: 0,
 
   run: function (sender, args) {
-    db.readData(sender).then(data => {
+    userdata.read(sender).then(data => {
       if (data === false) {
-        db.register(sender).then(output => {
+        userdata.register(sender).then(output => {
           if (output === true) {
             let timestamp = main.updateTimestamp()
             console.log(timestamp+`${sender} has registered!`)

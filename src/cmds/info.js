@@ -1,6 +1,6 @@
 
 const main = require('../main')
-const db = require('../db')
+const userdata = require('../db/userdata')
 
 module.exports = {
   
@@ -12,8 +12,8 @@ module.exports = {
   trusted_cooldown: 0,
 
   run: function (sender, args) {
-    db.fetchUsers().then(users => {
-      main.respond(sender, `[ℹ]: dfrep ver. 1.1.3 | ${users.length} users | First time? Check out our github! [github.cοm/Yudodissed/dfrep]`)  
+    userdata.fetchUsers().then(users => {
+      main.respond(sender, `[ℹ]: dfrep ver. 1.1.4 | ${users.length} users | First time? Check out our github! [github.cοm/Yudodissed/dfrep]`)  
     })
   }
 }
